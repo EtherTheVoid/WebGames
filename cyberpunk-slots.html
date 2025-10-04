@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Heist Slots</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: #0a0a1a;
+            color: #00ffcc;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            display: block;
+        }
+
+        /* Glitch effect for the background */
+        @keyframes glitch {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            10% {
+                transform: translate(-2px, -2px);
+            }
+
+            20% {
+                transform: translate(2px, 2px);
+            }
+
+            30% {
+                transform: translate(-2px, 2px);
+            }
+
+            40% {
+                transform: translate(2px, -2px);
+            }
+
+            50% {
+                transform: translate(0, 0);
+            }
+        }
+
+        .glitch-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://www.transparenttextures.com/patterns/scan-lines.png');
+            opacity: 0.1;
+            animation: glitch 5s infinite steps(1);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 255, 255, 0.2);
+            animation: scan 4s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(100vh);
+            }
+        }
+
+        .neon-border {
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc, 0 0 15px #00ffcc;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 5px #00ffcc, 0 0 10px #00ffcc;
+        }
+        
+        @keyframes text-flicker {
+          0%, 18%, 22%, 25%, 53%, 57%, 100% {
+            text-shadow: 0 0 4px #00ffcc, 0 0 10px #00ffcc, 0 0 20px #00ffcc, 0 0 40px #00ffcc, 0 0 80px #00ffcc, 0 0 100px #00ffcc;
+            opacity: 1;
+          }
+          20%, 24%, 55% {
+            text-shadow: none;
+            opacity: 0.85;
+          }
+        }
+
+        .text-flicker {
+            animation: text-flicker 4s linear infinite;
+        }
+
+        .cyber-corners {
+            position: relative;
+        }
+        .cyber-corners::before,
+        .cyber-corners::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            border-color: #ff00ff;
+            border-style: solid;
+            pointer-events: none;
+        }
+        .cyber-corners::before {
+            top: -6px;
+            left: -6px;
+            border-width: 3px 0 0 3px;
+        }
+        .cyber-corners::after {
+            bottom: -6px;
+            right: -6px;
+            border-width: 0 3px 3px 0;
+        }
+
+
+        .btn-neon {
+            border: 2px solid #00ffcc;
+            color: #00ffcc;
+            text-shadow: 0 0 5px #00ffcc;
+            transition: all 0.3s ease;
+            background: rgba(0, 255, 204, 0.1);
+        }
+
+        .btn-neon:hover:not(:disabled) {
+            background: #00ffcc;
+            color: #0a0a1a;
+            box-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc, 0 0 40px #00ffcc;
+        }
+
+        .btn-neon:disabled {
+            border-color: #446666;
+            color: #446666;
+            text-shadow: none;
+            background: rgba(68, 102, 102, 0.1);
+            cursor: not-allowed;
+        }
+
+        .slot-reel {
+            background: rgba(10, 10, 26, 0.8);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .reel-symbols {
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reel-symbols.spinning {
+            transition: transform 1s linear;
+        }
+
+        .symbol-img {
+            width: 80%;
+            height: 80%;
+            filter: drop-shadow(0 0 3px #00ffcc);
+            object-fit: contain;
+        }
+
+        /* Modal styles */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: #0a0a1a;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Icebreaker minigame styles */
+        .ice-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .ice-node {
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid #00ffcc;
+            transition: all 0.2s;
+        }
+
+        .ice-node.start {
+            background-color: #ff00ff;
+        }
+
+        .ice-node.end {
+            background-color: #ff00ff;
+        }
+
+        .ice-node.path {
+            background-color: #00ffcc;
+            box-shadow: 0 0 8px #00ffcc;
+        }
+
+        .ice-node.active {
+            background-color: #f0ff00;
+        }
+
+        #payline {
+            position: absolute;
+            top: 50%;
+            left: -5%;
+            width: 110%;
+            height: 4px;
+            background: rgba(255, 0, 255, 0.7);
+            transform: translateY(-50%);
+            box-shadow: 0 0 5px #ff00ff;
+            pointer-events: none;
+        }
+
+        h1,
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="w-screen h-screen flex items-center justify-center p-4">
+    <canvas id="matrix-canvas"></canvas>
+    <div class="glitch-bg"></div>
+    <div class="scanline"></div>
+
+    <div id="game-container" class="w-full max-w-5xl mx-auto flex flex-col items-center gap-4">
+        <!-- Header -->
+        <header class="w-full text-center">
+            <h1 class="text-3xl md:text-5xl font-bold uppercase neon-text tracking-widest text-flicker">Data Heist</h1>
+            <p class="text-sm md:text-lg text-fuchsia-400">Breach the Mainframe. Score the Data.</p>
+        </header>
+
+        <!-- Jackpot Display -->
+        <div class="w-full max-w-2xl p-2 text-center neon-border rounded-lg bg-black/50 cyber-corners">
+            <h2 class="text-sm md:text-lg uppercase text-fuchsia-400">Mainframe Jackpot</h2>
+            <p id="jackpot-display" class="text-2xl md:text-4xl font-bold">1000000</p>
+        </div>
+
+        <!-- Slot Machine -->
+        <main id="slot-machine" class="w-full p-4 md:p-6 neon-border rounded-lg bg-black/50 backdrop-blur-sm cyber-corners">
+            <!-- Reels -->
+            <div class="relative grid grid-cols-5 gap-2 md:gap-4 mb-4">
+                <div id="payline"></div>
+                <div class="slot-reel aspect-square">
+                    <div class="reel-symbols"></div>
+                </div>
+                <div class="slot-reel aspect-square">
+                    <div class="reel-symbols"></div>
+                </div>
+                <div class="slot-reel aspect-square">
+                    <div class="reel-symbols"></div>
+                </div>
+                <div class="slot-reel aspect-square">
+                    <div class="reel-symbols"></div>
+                </div>
+                <div class="slot-reel aspect-square">
+                    <div class="reel-symbols"></div>
+                </div>
+            </div>
+            <!-- Message Display -->
+            <div id="message-display"
+                class="h-8 text-center text-lg font-bold text-fuchsia-400 mb-4 transition-opacity duration-300"></div>
+        </main>
+
+        <!-- Controls -->
+        <footer class="w-full max-w-2xl grid grid-cols-3 gap-2 md:gap-4 p-2 neon-border rounded-lg bg-black/50 cyber-corners">
+            <div class="text-center">
+                <h3 class="text-xs md:text-sm uppercase">Data Credits</h3>
+                <p id="credits-display" class="text-lg md:text-2xl font-bold">500</p>
+            </div>
+            <div class="text-center">
+                <h3 class="text-xs md:text-sm uppercase">Bet Amount</h3>
+                <div class="flex items-center justify-center gap-2">
+                    <button id="bet-down" class="btn-neon px-2 rounded">-</button>
+                    <p id="bet-display" class="text-lg md:text-2xl font-bold">10</p>
+                    <button id="bet-up" class="btn-neon px-2 rounded">+</button>
+                </div>
+            </div>
+            <div class="flex items-center justify-center">
+                <button id="spin-button"
+                    class="w-full h-full text-lg md:text-2xl font-bold uppercase btn-neon rounded-lg py-2">Spin</button>
+            </div>
+        </footer>
+
+        <!-- Monetization Buttons -->
+        <div class="flex gap-4 mt-4">
+            <button id="daily-credits-btn" class="text-sm btn-neon py-2 px-4 rounded">Claim Daily Credits</button>
+            <button id="buy-credits-btn" class="text-sm btn-neon py-2 px-4 rounded">Get More Credits</button>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Icebreaker Mini-Game Modal -->
+    <div id="icebreaker-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
+        <div class="modal-content w-full max-w-md p-6 rounded-lg neon-border text-center">
+            <h2 class="text-3xl font-bold neon-text mb-2">FIREWALL BREACH</h2>
+            <p class="mb-4 text-fuchsia-400">Connect the nodes before the timer runs out!</p>
+            <div class="mb-4 flex justify-center">
+                <div id="icebreaker-grid" class="ice-grid"></div>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-4 border-2 border-fuchsia-400 mb-4">
+                <div id="timer-bar" class="bg-fuchsia-400 h-full rounded-full transition-all duration-100 ease-linear">
+                </div>
+            </div>
+            <p id="icebreaker-message" class="h-6 mb-2"></p>
+        </div>
+    </div>
+
+    <!-- Buy Credits Modal -->
+    <div id="buy-credits-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-backdrop p-4">
+        <div class="modal-content w-full max-w-md p-6 rounded-lg neon-border text-center relative">
+            <button id="close-buy-modal" class="absolute top-2 right-2 text-2xl">&times;</button>
+            <h2 class="text-3xl font-bold neon-text mb-2">DATA CACHE</h2>
+            <p class="mb-6 text-fuchsia-400">Purchase Data Credits to continue the heist.</p>
+            <div class="space-y-4">
+                <button class="w-full btn-neon p-3 rounded" data-amount="100">100 Credits - $0.99</button>
+                <button class="w-full btn-neon p-3 rounded" data-amount="500">500 Credits - $4.99</button>
+                <button class="w-full btn-neon p-3 rounded" data-amount="2000">2000 Credits - $9.99</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- MATRIX RAIN EFFECT ---
+            const canvas = document.getElementById('matrix-canvas');
+            const ctx = canvas.getContext('2d');
+
+            let matrixInterval;
+
+            function setupMatrix() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン';
+                const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                const nums = '0123456789';
+                const alphabet = katakana + latin + nums;
+
+                const fontSize = 16;
+                const columns = canvas.width / fontSize;
+
+                const rainDrops = [];
+
+                for (let x = 0; x < columns; x++) {
+                    rainDrops[x] = 1;
+                }
+
+                function drawMatrix() {
+                    ctx.fillStyle = 'rgba(10, 10, 26, 0.05)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.fillStyle = '#00a383';
+                    ctx.font = fontSize + 'px monospace';
+
+                    for (let i = 0; i < rainDrops.length; i++) {
+                        const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                        ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+
+                        if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                            rainDrops[i] = 0;
+                        }
+                        rainDrops[i]++;
+                    }
+                }
+                
+                if (matrixInterval) clearInterval(matrixInterval);
+                matrixInterval = setInterval(drawMatrix, 33);
+            }
+
+            setupMatrix();
+            window.addEventListener('resize', setupMatrix);
+
+            // --- DOM ELEMENTS ---
+            const creditsDisplay = document.getElementById('credits-display');
+            const betDisplay = document.getElementById('bet-display');
+            const jackpotDisplay = document.getElementById('jackpot-display');
+            const spinButton = document.getElementById('spin-button');
+            const betUpButton = document.getElementById('bet-up');
+            const betDownButton = document.getElementById('bet-down');
+            const reels = document.querySelectorAll('.slot-reel .reel-symbols');
+            const messageDisplay = document.getElementById('message-display');
+
+            const icebreakerModal = document.getElementById('icebreaker-modal');
+            const icebreakerGrid = document.getElementById('icebreaker-grid');
+            const timerBar = document.getElementById('timer-bar');
+
+            const buyCreditsModal = document.getElementById('buy-credits-modal');
+            const buyCreditsBtn = document.getElementById('buy-credits-btn');
+            const closeBuyModalBtn = document.getElementById('close-buy-modal');
+            const dailyCreditsBtn = document.getElementById('daily-credits-btn');
+
+            // --- GAME STATE ---
+            let credits = 500;
+            let currentBet = 10;
+            let jackpot = 1000000;
+            let isSpinning = false;
+            let reelStrips = []; // Holds the pre-generated symbol strips for each reel
+            const betIncrements = [10, 20, 50, 100, 200, 400, 500, 1000, 2000, 4000, 5000, 10000, 50000, 100000];
+
+            // --- SOUND SYNTHS (using Tone.js) ---
+            const spinSound = new Tone.Synth({ oscillator: { type: "fmsquare" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+            const winSound = new Tone.Synth({ oscillator: { type: "triangle" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination();
+            const jackpotSound = new Tone.PolySynth(Tone.Synth).toDestination();
+            const bonusSound = new Tone.Synth({ oscillator: { type: "sawtooth" }, envelope: { attack: 0.1, decay: 0.5, sustain: 0.2, release: 0.5 } }).toDestination();
+            const clickSound = new Tone.MembraneSynth().toDestination();
+
+            // --- SYMBOLS DEFINITION ---
+            const symbols = {
+                'chip': { value: 5 },
+                'skull': { value: 15 },
+                'hacker': { value: 50 },
+                'wild': { value: 0, wild: true },
+                'bonus': { value: 0, bonus: true }
+            };
+
+            function createSymbolSVG(symbolKey) {
+                const colors = {
+                    chip: '#00ffcc',
+                    skull: '#ff00ff',
+                    hacker: '#f0ff00',
+                    wild: '#00ffcc',
+                    bonus: '#ff3300'
+                };
+                const color = colors[symbolKey] || '#ffffff';
+                let icon;
+
+                switch (symbolKey) {
+                    case 'chip':
+                        icon = `<rect x="20" y="35" width="60" height="30" rx="5" stroke="${color}" stroke-width="4" fill="none" /><line x1="30" y1="50" x2="70" y2="50" stroke="${color}" stroke-width="4" />`;
+                        break;
+                    case 'skull':
+                        icon = `<circle cx="50" cy="40" r="20" stroke="${color}" stroke-width="4" fill="none" /><rect x="40" y="60" width="20" height="15" fill="${color}" /><line x1="45" y1="60" x2="45" y2="75" stroke="#0a0a1a" stroke-width="4"/><line x1="55" y1="60" x2="55" y2="75" stroke="#0a0a1a" stroke-width="4"/>`;
+                        break;
+                    case 'hacker':
+                        icon = `<path d="M30 70 L50 30 L70 70 Z" stroke="${color}" stroke-width="4" fill="none" /><circle cx="50" cy="55" r="5" fill="${color}" />`;
+                        break;
+                    case 'wild':
+                        icon = `<text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Orbitron, sans-serif" font-size="32" font-weight="bold" fill="${color}" class="neon-text">WILD</text>`;
+                        break;
+                    case 'bonus':
+                        icon = `<path d="M50 20 L70 40 L60 70 L40 70 L30 40 Z" stroke="${color}" stroke-width="4" fill="none" />`;
+                        break;
+                    default:
+                        icon = `<circle cx="50" cy="50" r="25" stroke="${color}" stroke-width="4" fill="none" />`;
+                }
+
+                return `<svg viewBox="0 0 100 100" class="symbol-img">${icon}</svg>`;
+            }
+
+            const symbolPool = [
+                ...Array(30).fill('chip'),
+                ...Array(20).fill('skull'),
+                ...Array(10).fill('hacker'),
+                ...Array(7).fill('wild'),
+                ...Array(7).fill('bonus')
+            ];
+
+            // --- UI FUNCTIONS ---
+            function updateDisplays() {
+                creditsDisplay.textContent = credits;
+                betDisplay.textContent = currentBet;
+                jackpotDisplay.textContent = Math.floor(jackpot).toLocaleString();
+            }
+
+            function showMessage(text, isWin = false, duration = 2000) {
+                messageDisplay.textContent = text;
+                messageDisplay.classList.remove('text-fuchsia-400', 'text-green-400');
+                messageDisplay.classList.add(isWin ? 'text-green-400' : 'text-fuchsia-400');
+                messageDisplay.style.opacity = '1';
+                setTimeout(() => { messageDisplay.style.opacity = '0'; }, duration);
+            }
+
+            function toggleControls(enabled) {
+                spinButton.disabled = !enabled;
+                betUpButton.disabled = !enabled;
+                betDownButton.disabled = !enabled;
+                isSpinning = !enabled;
+            }
+
+            // --- GAME LOGIC ---
+            function changeBet(direction) {
+                clickSound.triggerAttackRelease("C2", "8n");
+                const currentIndex = betIncrements.indexOf(currentBet);
+                let newIndex = currentIndex + direction;
+                if (newIndex < 0) newIndex = 0;
+                if (newIndex >= betIncrements.length) newIndex = betIncrements.length - 1;
+                currentBet = betIncrements[newIndex];
+                updateDisplays();
+            }
+
+            function getRandomSymbol() {
+                return symbolPool[Math.floor(Math.random() * symbolPool.length)];
+            }
+
+            function generateReelStrip(length = 30) {
+                return Array.from({ length }, getRandomSymbol);
+            }
+
+            function spin() {
+                if (isSpinning || credits < currentBet) {
+                    showMessage(credits < currentBet ? "Not enough credits!" : "Spin in progress.");
+                    return;
+                }
+
+                toggleControls(false);
+                credits -= currentBet;
+                jackpot += currentBet * 0.01; // 1% of bet goes to jackpot
+                updateDisplays();
+
+                let finalResults = [];
+
+                reels.forEach((reel, i) => {
+                    spinSound.triggerAttackRelease(`C${2 + i}`, "16n", Tone.now() + i * 0.05);
+                    const strip = reelStrips[i]; // Use the pre-generated strip
+
+                    // The reel elements are already populated from init(). We just animate them.
+                    reel.classList.add('spinning');
+                    
+                    // Animate to the end of the strip to simulate a full spin.
+                    // A reset before the animation can help make it look more random.
+                    reel.style.transition = 'none';
+                    reel.style.transform = 'translateY(0)';
+                    reel.offsetHeight; // Force browser reflow
+                    reel.style.transition = 'transform 1s linear';
+                    reel.style.transform = `translateY(-${((strip.length - 1) / strip.length) * 100}%)`;
+
+                    setTimeout(() => {
+                        // Remove spinning class to use the smooth cubic-bezier transition for landing
+                        reel.classList.remove('spinning');
+                        
+                        // Pick a random landing spot on the pre-generated strip
+                        const finalSymbolIndex = Math.floor(Math.random() * (strip.length - 2)) + 1;
+                        finalResults[i] = strip[finalSymbolIndex];
+
+                        // Animate to the final landing position
+                        reel.style.transform = `translateY(-${(finalSymbolIndex / strip.length) * 100}%)`;
+                    }, 1000 + i * 200);
+                });
+
+                setTimeout(() => {
+                    checkWin(finalResults);
+                }, 2500);
+            }
+
+            function checkWin(results) {
+                const payline = results; // Payline is the result of each reel
+
+                // Check for bonus
+                const bonusCount = payline.filter(s => s === 'bonus').length;
+                if (bonusCount >= 3) {
+                    bonusSound.triggerAttackRelease("A3", "1n");
+                    showMessage("FIREWALL DETECTED! BREACHING...");
+                    setTimeout(startIcebreaker, 1500);
+                    return; // Stop further checks
+                }
+
+                // Check for jackpot
+                const wildCount = payline.filter(s => s === 'wild').length;
+                if (wildCount === 5) {
+                    credits += jackpot;
+                    jackpotSound.triggerAttackRelease(["C4", "E4", "G4", "C5"], "1n");
+                    showMessage(`MAINFRAME BREACHED! +${Math.floor(jackpot).toLocaleString()} CREDITS!`, true, 5000);
+                    jackpot = 100000;
+                    updateDisplays();
+                    toggleControls(true);
+                    return;
+                }
+
+                // Check for regular wins
+                let winAmount = 0;
+                let winSymbol = null;
+
+                // Create effective payline with wilds
+                let effectiveLine = [...payline];
+                let firstSymbol = effectiveLine.find(s => s !== 'wild');
+                if (firstSymbol) {
+                    effectiveLine = effectiveLine.map(s => s === 'wild' ? firstSymbol : s);
+                }
+
+                const counts = effectiveLine.reduce((acc, symbol) => {
+                    acc[symbol] = (acc[symbol] || 0) + 1;
+                    return acc;
+                }, {});
+
+                for (const symbol in counts) {
+                    const count = counts[symbol];
+                    if (count >= 3) {
+                        const multiplierMap = { 3: 1, 4: 5, 5: 20 };
+                        const currentWin = symbols[symbol].value * currentBet * multiplierMap[count];
+                        if (currentWin > winAmount) {
+                            winAmount = currentWin;
+                            winSymbol = symbol;
+                        }
+                    }
+                }
+
+                if (winAmount > 0) {
+                    credits += winAmount;
+                    winSound.triggerAttackRelease("C5", "8n", Tone.now());
+                    winSound.triggerAttackRelease("G5", "8n", Tone.now() + 0.1);
+                    showMessage(`WIN! +${winAmount} on ${winSymbol}s`, true);
+                } else {
+                    showMessage("Missed it!");
+                }
+
+                updateDisplays();
+                toggleControls(true);
+            }
+
+            // --- ICEBREAKER MINI-GAME ---
+            let icebreakerTimer;
+            let icebreakerPath = [];
+            const gridSize = 5;
+            const gridTotal = gridSize * gridSize;
+            const startNode = 0;
+            const endNode = gridTotal - 1;
+
+            function startIcebreaker() {
+                icebreakerModal.classList.remove('hidden');
+                icebreakerPath = [startNode];
+                renderIcebreakerGrid();
+
+                let timeLeft = 100;
+                timerBar.style.width = '100%';
+
+                icebreakerTimer = setInterval(() => {
+                    timeLeft--;
+                    timerBar.style.width = `${timeLeft}%`;
+                    if (timeLeft <= 0) {
+                        clearInterval(icebreakerTimer);
+                        endIcebreaker(false);
+                    }
+                }, 100);
+            }
+
+            function renderIcebreakerGrid() {
+                icebreakerGrid.innerHTML = '';
+                for (let i = 0; i < gridTotal; i++) {
+                    const node = document.createElement('div');
+                    node.classList.add('ice-node');
+                    if (i === startNode) node.classList.add('start');
+                    if (i === endNode) node.classList.add('end');
+                    if (icebreakerPath.includes(i)) node.classList.add('path');
+                    if (i === icebreakerPath[icebreakerPath.length - 1]) node.classList.add('active');
+
+                    node.dataset.index = i;
+                    node.addEventListener('click', handleNodeClick);
+                    icebreakerGrid.appendChild(node);
+                }
+            }
+
+            function handleNodeClick(e) {
+                const clickedIndex = parseInt(e.target.dataset.index);
+                const currentIndex = icebreakerPath[icebreakerPath.length - 1];
+
+                const isAdjacent = Math.abs(clickedIndex - currentIndex) === 1 && Math.floor(clickedIndex / gridSize) === Math.floor(currentIndex / gridSize) || // Horizontal
+                    Math.abs(clickedIndex - currentIndex) === gridSize; // Vertical
+
+                if (isAdjacent && !icebreakerPath.includes(clickedIndex)) {
+                    clickSound.triggerAttackRelease("G4", "16n");
+                    icebreakerPath.push(clickedIndex);
+                    renderIcebreakerGrid();
+                    if (clickedIndex === endNode) {
+                        clearInterval(icebreakerTimer);
+                        endIcebreaker(true);
+                    }
+                } else if (icebreakerPath.length > 1 && clickedIndex === icebreakerPath[icebreakerPath.length - 2]) {
+                    // Go back
+                    icebreakerPath.pop();
+                    renderIcebreakerGrid();
+                }
+            }
+
+            function endIcebreaker(success) {
+                if (success) {
+                    const multiplier = 20;
+                    const winAmount = currentBet * multiplier;
+                    credits += winAmount;
+                    showMessage(`BREACH SUCCESSFUL! +${winAmount} CREDITS!`, true, 4000);
+                    winSound.triggerAttackRelease("C6", "4n");
+                } else {
+                    credits += currentBet; // Consolation prize
+                    showMessage(`BREACH FAILED. Consolation prize: +${currentBet}`, false, 4000);
+                }
+                setTimeout(() => {
+                    icebreakerModal.classList.add('hidden');
+                    updateDisplays();
+                    toggleControls(true);
+                }, 2000);
+            }
+
+            // --- SIMULATED MONETIZATION ---
+            function openBuyModal() {
+                clickSound.triggerAttackRelease("C3", "8n");
+                buyCreditsModal.classList.remove('hidden');
+            }
+
+            function closeBuyModal() {
+                clickSound.triggerAttackRelease("C2", "8n");
+                buyCreditsModal.classList.add('hidden');
+            }
+
+            function purchaseCredits(e) {
+                if (e.target.dataset.amount) {
+                    const amount = parseInt(e.target.dataset.amount);
+                    credits += amount;
+                    showMessage(`+${amount} Data Credits Purchased!`, true);
+                    updateDisplays();
+                    closeBuyModal();
+                }
+            }
+
+            let dailyClaimed = false;
+            function claimDaily() {
+                if (dailyClaimed) {
+                    showMessage("Daily credits already claimed.");
+                    return;
+                }
+                clickSound.triggerAttackRelease("E4", "8n");
+                credits += 250;
+                dailyClaimed = true;
+                dailyCreditsBtn.disabled = true;
+                dailyCreditsBtn.textContent = "Claimed";
+                showMessage("+250 Daily Credits!", true);
+                updateDisplays();
+            }
+
+            // --- EVENT LISTENERS ---
+            spinButton.addEventListener('click', spin);
+            betUpButton.addEventListener('click', () => changeBet(1));
+            betDownButton.addEventListener('click', () => changeBet(-1));
+            buyCreditsBtn.addEventListener('click', openBuyModal);
+            closeBuyModalBtn.addEventListener('click', closeBuyModal);
+            buyCreditsModal.addEventListener('click', purchaseCredits);
+            dailyCreditsBtn.addEventListener('click', claimDaily);
+
+            // --- INITIALIZATION ---
+            function init() {
+                // Generate and store the fixed reel strips once on load
+                for (let i = 0; i < reels.length; i++) {
+                    reelStrips.push(generateReelStrip(50)); // Make strips longer for better visual spin
+                }
+
+                // For each reel container, build the visual strip inside it once
+                reels.forEach((reel, i) => {
+                    const strip = reelStrips[i];
+                    reel.innerHTML = ''; // Clear any placeholders
+                    
+                    // Create and append all symbol elements for the strip
+                    strip.forEach(symbolKey => {
+                        const symbolContainer = document.createElement('div');
+                        symbolContainer.classList.add('w-full', 'h-full', 'flex', 'items-center', 'justify-center', 'flex-shrink-0');
+                        symbolContainer.style.height = reel.parentElement.clientHeight + 'px';
+                        symbolContainer.innerHTML = createSymbolSVG(symbolKey);
+                        reel.appendChild(symbolContainer);
+                    });
+                });
+                updateDisplays();
+            }
+
+            init();
+        });
+    </script>
+</body>
+
+</html>
+
