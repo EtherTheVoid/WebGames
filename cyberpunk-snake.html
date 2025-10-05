@@ -74,6 +74,7 @@
             max-height: 65vh;
             aspect-ratio: 1 / 1;
             border-radius: 8px;
+            touch-action: none; /* Prevents default touch actions like scrolling */
         }
         
         /* --- MODALS --- */
@@ -664,6 +665,58 @@
             if ((keyPressed === 'ArrowRight' || keyPressed.toLowerCase() === 'd') && !goingLeft) { dx = 1; dy = 0; }
             if ((keyPressed === 'ArrowDown' || keyPressed.toLowerCase() === 's') && !goingUp) { dx = 0; dy = 1; }
         });
+
+        // --- MOBILE SWIPE CONTROLS ---
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, false);
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, false);
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        }, false);
+
+        function handleSwipe() {
+            if (changingDirection) return;
+
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const swipeThreshold = 50; // Minimum distance for a swipe
+
+            if (Math.abs(deltaX) < swipeThreshold && Math.abs(deltaY) < swipeThreshold) {
+                return;
+            }
+
+            changingDirection = true;
+
+            const goingUp = dy === -1;
+            const goingDown = dy === 1;
+            const goingRight = dx === 1;
+            const goingLeft = dx === -1;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                // Horizontal swipe
+                if (deltaX > 0 && !goingLeft) { dx = 1; dy = 0; } // Right
+                else if (deltaX < 0 && !goingRight) { dx = -1; dy = 0; } // Left
+            } else {
+                // Vertical swipe
+                if (deltaY > 0 && !goingUp) { dx = 0; dy = 1; } // Down
+                else if (deltaY < 0 && !goingDown) { dx = 0; dy = -1; } // Up
+            }
+        }
         
         // --- MODAL BUTTONS ---
         document.getElementById('tier-1-btn').addEventListener('click', () => startGame(1));
