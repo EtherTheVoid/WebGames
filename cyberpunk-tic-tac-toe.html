@@ -10,16 +10,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
     <style>
         :root {
-            --neon-blue: #00ffff;
-            --neon-red: #ff005d;
-            --neon-green: #39ff14;
-            --dark-bg: #0a0a14;
+            --neon-yellow: #fcee0a;
+            --neon-red: #ff003c;
+            --neon-cyan: #0abdc6;
+            --dark-bg: #0c0c0c;
             --grid-bg: rgba(10, 25, 47, 0.5);
             --text-color: #e0e0e0;
-            --border-glow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue), 0 0 15px var(--neon-blue);
-            --text-glow-blue: 0 0 3px var(--neon-blue);
+            --border-glow: 0 0 5px var(--neon-cyan), 0 0 10px var(--neon-cyan), 0 0 15px var(--neon-cyan);
+            --text-glow-yellow: 0 0 3px var(--neon-yellow);
             --text-glow-red: 0 0 5px var(--neon-red);
-            --text-glow-green: 0 0 5px var(--neon-green);
+            --text-glow-cyan: 0 0 5px var(--neon-cyan);
             --glitch-speed: 0.1s;
         }
 
@@ -30,18 +30,17 @@
             color: var(--text-color);
             display: flex;
             justify-content: center;
-            /* align-items: center; removed to allow scrolling */
             min-height: 100vh;
             margin: 0;
-            padding: 2rem 1rem; /* Adjusted padding for better spacing */
+            padding: 2rem 1rem;
             box-sizing: border-box;
             background-image:
-                linear-gradient(rgba(10, 10, 20, 0.95), rgba(10, 10, 20, 0.95)),
-                url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
-            /* overflow: hidden; removed to enable scrolling */
+                linear-gradient(to right, rgba(255, 0, 60, 0.2), transparent, rgba(10, 189, 198, 0.2)),
+                url('https://www.transparenttextures.com/patterns/worn-dots.png');
             position: relative;
+            overflow: visible;
         }
-        
+
         body::before {
             content: '';
             position: absolute;
@@ -49,11 +48,13 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(0deg, transparent 50%, rgba(0, 255, 255, 0.1) 50%);
-            background-size: 100% 4px;
-            animation: scanline 10s linear infinite;
+            background:
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            animation: glitch-scan 15s linear infinite;
             pointer-events: none;
-            z-index: -1;
+            z-index: 1;
         }
 
         /* Main Game Wrapper */
@@ -61,8 +62,7 @@
             width: 100%;
             max-width: 500px;
             padding: 2rem;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--neon-blue);
+            border: 1px solid var(--neon-cyan);
             box-shadow: var(--border-glow), inset 0 0 10px rgba(0, 255, 255, 0.2);
             border-radius: 10px;
             backdrop-filter: blur(5px);
@@ -78,17 +78,20 @@
         }
 
         h1 {
-            color: var(--neon-blue);
-            text-shadow: var(--text-glow-blue);
+            color: var(--neon-cyan);
+            text-shadow: var(--text-glow-cyan);
             font-size: 2.5rem;
             animation: flicker 3s infinite alternate;
         }
         
         .subtitle {
-            font-size: 1rem;
-            color: var(--text-color);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 5px var(--neon-cyan), 0 0 10px var(--neon-cyan);
             margin-bottom: 2rem;
-            opacity: 0.8;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         /* Player Info Bar */
@@ -97,7 +100,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 0.5rem 1rem;
-            border: 1px solid var(--neon-blue);
+            border: 1px solid var(--neon-cyan);
             border-radius: 5px;
             background: rgba(0, 255, 255, 0.05);
             margin-bottom: 1.5rem;
@@ -106,8 +109,8 @@
         .player-avatar, .creds-display {
             font-family: 'Orbitron', sans-serif;
             font-size: 1.2rem;
-            color: var(--neon-green);
-            text-shadow: var(--text-glow-green);
+            color: var(--neon-yellow);
+            text-shadow: var(--text-glow-yellow);
         }
         .player-avatar::before { content: 'P:> '; }
         .creds-display::before { content: 'Creds: '; }
@@ -130,7 +133,7 @@
 
         .board-cell {
             background-color: var(--grid-bg);
-            border: 2px solid var(--neon-blue);
+            border: 2px solid var(--neon-cyan);
             box-shadow: var(--border-glow);
             border-radius: 5px;
             display: flex;
@@ -144,7 +147,7 @@
 
         .board-cell:hover:not(.occupied) {
             background-color: rgba(0, 255, 255, 0.2);
-            box-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
         }
 
         .board-cell.occupied {
@@ -164,10 +167,10 @@
         }
 
         .board-cell.O .mark {
-            color: var(--neon-green);
+            color: var(--neon-yellow);
             font-family: 'Orbitron', sans-serif;
             font-weight: bold;
-            text-shadow: 0 0 5px var(--neon-green), 0 0 10px var(--neon-green);
+            text-shadow: 0 0 5px var(--neon-yellow), 0 0 10px var(--neon-yellow);
         }
         
         .winning-cell {
@@ -180,21 +183,20 @@
             font-family: 'Orbitron', sans-serif;
             height: 2rem;
             margin-bottom: 1rem;
-            color: var(--neon-blue);
-            text-shadow: var(--text-glow-blue);
+            color: var(--neon-cyan);
+            text-shadow: var(--text-glow-cyan);
         }
 
         .pot-display {
-            color: var(--neon-green);
-            text-shadow: var(--text-glow-green);
+            color: var(--neon-yellow);
+            text-shadow: var(--text-glow-yellow);
         }
         .pot-display::before { content: 'Pot: '; }
 
         .btn {
             font-family: 'Orbitron', sans-serif;
-            background-color: transparent;
-            border: 2px solid var(--neon-blue);
-            color: var(--neon-blue);
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
@@ -202,13 +204,13 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             box-shadow: inset 0 0 5px rgba(0, 255, 255, 0.3), 0 0 5px rgba(0, 255, 255, 0.3);
-            text-shadow: 0 0 3px var(--neon-blue);
+            text-shadow: 0 0 3px var(--neon-cyan);
         }
 
         .btn:hover:not(:disabled) {
-            background-color: var(--neon-blue);
+            background-color: var(--neon-cyan);
             color: var(--dark-bg);
-            box-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
         }
         
         .btn:disabled {
@@ -249,14 +251,14 @@
             display: block;
             margin-bottom: 0.5rem;
             font-family: 'Orbitron', sans-serif;
-            color: var(--neon-blue);
+            color: var(--neon-cyan);
         }
         
         select, input[type="number"] {
             width: 80%;
             padding: 10px;
             background: var(--grid-bg);
-            border: 1px solid var(--neon-blue);
+            border: 1px solid var(--neon-cyan);
             color: var(--text-color);
             border-radius: 5px;
             font-family: 'Orbitron', sans-serif;
@@ -271,7 +273,7 @@
         /* Power-ups */
         .power-ups {
             margin-top: 2rem;
-            border-top: 1px dashed var(--neon-blue);
+            border-top: 1px dashed var(--neon-cyan);
             padding-top: 1rem;
         }
         .power-ups h2 {
@@ -316,7 +318,7 @@
             background: var(--dark-bg);
             padding: 2rem;
             border-radius: 10px;
-            border: 2px solid var(--neon-blue);
+            border: 2px solid var(--neon-cyan);
             box-shadow: var(--border-glow);
             text-align: center;
             animation: slide-up 0.5s ease-out;
@@ -389,8 +391,8 @@
         
         @keyframes flicker {
             0%, 18%, 22%, 25%, 53%, 57%, 100% {
-                text-shadow: 0 0 4px var(--neon-blue), 0 0 11px var(--neon-blue), 0 0 19px var(--neon-blue);
-                color: var(--neon-blue);
+                text-shadow: 0 0 4px var(--neon-cyan), 0 0 11px var(--neon-cyan), 0 0 19px var(--neon-cyan);
+                color: var(--neon-cyan);
             }
             20%, 24%, 55% {
                 text-shadow: none;
@@ -410,9 +412,9 @@
         }
 
         @keyframes win-pulse {
-            0% { box-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green); background-color: rgba(57, 255, 20, 0.3); }
-            50% { box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green); background-color: rgba(57, 255, 20, 0.5); }
-            100% { box-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green); background-color: rgba(57, 255, 20, 0.3); }
+            0% { box-shadow: 0 0 10px var(--neon-yellow), 0 0 20px var(--neon-yellow); background-color: rgba(252, 238, 10, 0.3); }
+            50% { box-shadow: 0 0 20px var(--neon-yellow), 0 0 40px var(--neon-yellow); background-color: rgba(252, 238, 10, 0.5); }
+            100% { box-shadow: 0 0 10px var(--neon-yellow), 0 0 20px var(--neon-yellow); background-color: rgba(252, 238, 10, 0.3); }
         }
 
         @keyframes fade-in {
@@ -438,6 +440,11 @@
           60% { transform: translate(3px, 3px); }
           80% { transform: translate(3px, -3px); }
           100% { transform: translate(0); }
+        }
+
+        @keyframes glitch-scan {
+            0% { background-position: 0 0; }
+            100% { background-position: 100% 100%; }
         }
 
     </style>
