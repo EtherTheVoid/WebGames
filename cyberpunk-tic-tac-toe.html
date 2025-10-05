@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Noughts & Crosses: The Cyber-Duel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
+    <style>
+        :root {
+            --neon-blue: #00ffff;
+            --neon-red: #ff005d;
+            --neon-green: #39ff14;
+            --dark-bg: #0a0a14;
+            --grid-bg: rgba(10, 25, 47, 0.5);
+            --text-color: #e0e0e0;
+            --border-glow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue), 0 0 15px var(--neon-blue);
+            --text-glow-blue: 0 0 3px var(--neon-blue);
+            --text-glow-red: 0 0 5px var(--neon-red);
+            --text-glow-green: 0 0 5px var(--neon-green);
+            --glitch-speed: 0.1s;
+        }
+
+        /* General Body Styling */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            /* align-items: center; removed to allow scrolling */
+            min-height: 100vh;
+            margin: 0;
+            padding: 2rem 1rem; /* Adjusted padding for better spacing */
+            box-sizing: border-box;
+            background-image:
+                linear-gradient(rgba(10, 10, 20, 0.95), rgba(10, 10, 20, 0.95)),
+                url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+            /* overflow: hidden; removed to enable scrolling */
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(0deg, transparent 50%, rgba(0, 255, 255, 0.1) 50%);
+            background-size: 100% 4px;
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Main Game Wrapper */
+        .game-wrapper {
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--neon-blue);
+            box-shadow: var(--border-glow), inset 0 0 10px rgba(0, 255, 255, 0.2);
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            text-align: center;
+        }
+        
+        /* Typography */
+        h1, h2 {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            color: var(--neon-blue);
+            text-shadow: var(--text-glow-blue);
+            font-size: 2.5rem;
+            animation: flicker 3s infinite alternate;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+
+        /* Player Info Bar */
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--neon-blue);
+            border-radius: 5px;
+            background: rgba(0, 255, 255, 0.05);
+            margin-bottom: 1.5rem;
+        }
+        
+        .player-avatar, .creds-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--neon-green);
+            text-shadow: var(--text-glow-green);
+        }
+        .player-avatar::before { content: 'P:> '; }
+        .creds-display::before { content: 'Creds: '; }
+
+        /* Game Board */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 350px;
+            aspect-ratio: 1 / 1;
+            margin: 1.5rem auto;
+            background-color: transparent;
+            padding: 10px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .board-cell {
+            background-color: var(--grid-bg);
+            border: 2px solid var(--neon-blue);
+            box-shadow: var(--border-glow);
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            position: relative;
+        }
+
+        .board-cell:hover:not(.occupied) {
+            background-color: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+        }
+
+        .board-cell.occupied {
+            cursor: not-allowed;
+        }
+
+        /* X and O Styles */
+        .board-cell .mark {
+            animation: place-mark 0.3s ease-out;
+        }
+
+        .board-cell.X .mark {
+            color: var(--neon-red);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--neon-red), 0 0 10px var(--neon-red);
+        }
+
+        .board-cell.O .mark {
+            color: var(--neon-green);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            text-shadow: 0 0 5px var(--neon-green), 0 0 10px var(--neon-green);
+        }
+        
+        .winning-cell {
+            animation: win-pulse 1s infinite;
+        }
+
+        /* UI Elements */
+        .game-status, .pot-display {
+            font-size: 1.2rem;
+            font-family: 'Orbitron', sans-serif;
+            height: 2rem;
+            margin-bottom: 1rem;
+            color: var(--neon-blue);
+            text-shadow: var(--text-glow-blue);
+        }
+
+        .pot-display {
+            color: var(--neon-green);
+            text-shadow: var(--text-glow-green);
+        }
+        .pot-display::before { content: 'Pot: '; }
+
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            background-color: transparent;
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: inset 0 0 5px rgba(0, 255, 255, 0.3), 0 0 5px rgba(0, 255, 255, 0.3);
+            text-shadow: 0 0 3px var(--neon-blue);
+        }
+
+        .btn:hover:not(:disabled) {
+            background-color: var(--neon-blue);
+            color: var(--dark-bg);
+            box-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+        }
+        
+        .btn:disabled {
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+            text-shadow: none;
+        }
+        
+        .btn.btn-danger {
+            border-color: var(--neon-red);
+            color: var(--neon-red);
+            box-shadow: inset 0 0 5px rgba(255, 0, 93, 0.3), 0 0 5px rgba(255, 0, 93, 0.3);
+            text-shadow: 0 0 3px var(--neon-red);
+        }
+        
+        .btn.btn-danger:hover:not(:disabled) {
+            background-color: var(--neon-red);
+            color: var(--dark-bg);
+            box-shadow: 0 0 10px var(--neon-red), 0 0 20px var(--neon-red);
+        }
+
+        /* Screens and Modals */
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+            animation: fade-in 0.5s ease;
+        }
+
+        #wager-screen .form-group {
+            margin: 1.5rem 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+        }
+        
+        select, input[type="number"] {
+            width: 80%;
+            padding: 10px;
+            background: var(--grid-bg);
+            border: 1px solid var(--neon-blue);
+            color: var(--text-color);
+            border-radius: 5px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+        }
+        
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            box-shadow: var(--border-glow);
+        }
+
+        /* Power-ups */
+        .power-ups {
+            margin-top: 2rem;
+            border-top: 1px dashed var(--neon-blue);
+            padding-top: 1rem;
+        }
+        .power-ups h2 {
+            color: var(--neon-red);
+            text-shadow: var(--text-glow-red);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        .power-ups .btn {
+            margin: 0.25rem;
+            font-size: 0.8rem;
+            padding: 8px 12px;
+        }
+        .power-up-cost {
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        /* Result Modal */
+        #result-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #result-modal.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .result-content {
+            background: var(--dark-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 2px solid var(--neon-blue);
+            box-shadow: var(--border-glow);
+            text-align: center;
+            animation: slide-up 0.5s ease-out;
+        }
+
+        .result-content h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Notification Modal (similar to Result Modal) */
+        #notification-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 101; /* Higher than result modal */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #notification-modal.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .notification-content {
+            background: var(--dark-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            border: 2px solid var(--neon-red); /* Use red for notifications/errors */
+            box-shadow: 0 0 5px var(--neon-red), 0 0 10px var(--neon-red);
+            text-align: center;
+            animation: slide-up 0.5s ease-out;
+            max-width: 90%;
+        }
+
+        .notification-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--neon-red);
+        }
+
+        .notification-content p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Glitch effect */
+        .glitch {
+            animation: glitch-anim 1s infinite;
+        }
+
+        /* Keyframe Animations */
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100vh); }
+        }
+        
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow: 0 0 4px var(--neon-blue), 0 0 11px var(--neon-blue), 0 0 19px var(--neon-blue);
+                color: var(--neon-blue);
+            }
+            20%, 24%, 55% {
+                text-shadow: none;
+                color: #fff;
+            }
+        }
+        
+        @keyframes place-mark {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes win-pulse {
+            0% { box-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green); background-color: rgba(57, 255, 20, 0.3); }
+            50% { box-shadow: 0 0 20px var(--neon-green), 0 0 40px var(--neon-green); background-color: rgba(57, 255, 20, 0.5); }
+            100% { box-shadow: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green); background-color: rgba(57, 255, 20, 0.3); }
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slide-up {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes glitch-anim {
+          0% { transform: translate(0); }
+          20% { transform: translate(-3px, 3px); }
+          40% { transform: translate(-3px, -3px); }
+          60% { transform: translate(3px, 3px); }
+          80% { transform: translate(3px, -3px); }
+          100% { transform: translate(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-wrapper">
+        <header>
+            <h1>Neon Noughts & Crosses</h1>
+            <p class="subtitle">The Cyber-Duel</p>
+        </header>
+        
+        <div class="player-info">
+            <div class="player-avatar" id="player-avatar">PLAYER_1</div>
+            <div class="creds-display" id="creds-display">100</div>
+        </div>
+
+        <!-- Wager Screen -->
+        <div id="wager-screen" class="screen active">
+            <div class="form-group">
+                <label for="ai-opponent">Select Opponent:</label>
+                <select id="ai-opponent">
+                    <option value="easy">Scripter (Easy) - Ante: 5</option>
+                    <option value="medium">Netrunner (Medium) - Ante: 15</option>
+                    <option value="hard">SysOp (Hard) - Ante: 30</option>
+                </select>
+            </div>
+            
+            <div class="power-ups">
+                <h2>//:Bribe_The_System</h2>
+                <button id="power-up-scan" class="btn btn-danger">Scan Ahead <span class="power-up-cost">(10 Creds)</span></button>
+                <!-- Other power-ups can be added here -->
+            </div>
+            
+            <button id="start-game-btn" class="btn">Initiate Hack</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div id="game-status" class="game-status">Awaiting your move...</div>
+            <div id="pot-display" class="pot-display">0</div>
+            <div id="game-board"></div>
+            <button id="quit-game-btn" class="btn btn-danger">Abort Hack</button>
+        </div>
+
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal">
+        <div class="result-content">
+            <h2 id="result-title"></h2>
+            <p id="result-message"></p>
+            <button id="play-again-btn" class="btn">New Duel</button>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notification-modal">
+        <div class="notification-content">
+            <h2 id="notification-title"></h2>
+            <p id="notification-message"></p>
+            <button id="notification-close-btn" class="btn">Acknowledge</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const credsDisplay = document.getElementById('creds-display');
+            const wagerScreen = document.getElementById('wager-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const aiOpponentSelect = document.getElementById('ai-opponent');
+            const gameStatus = document.getElementById('game-status');
+            const potDisplay = document.getElementById('pot-display');
+            const gameBoardElement = document.getElementById('game-board');
+            const quitGameBtn = document.getElementById('quit-game-btn');
+            const resultModal = document.getElementById('result-modal');
+            const resultTitle = document.getElementById('result-title');
+            const resultMessage = document.getElementById('result-message');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            const powerUpScanBtn = document.getElementById('power-up-scan');
+            const notificationModal = document.getElementById('notification-modal');
+            const notificationTitle = document.getElementById('notification-title');
+            const notificationMessage = document.getElementById('notification-message');
+            const notificationCloseBtn = document.getElementById('notification-close-btn');
+
+            // --- Game State ---
+            let playerCreds = 100;
+            let boardState = Array(9).fill(null);
+            let currentPlayer = 'X'; // Player is always 'X'
+            let gameActive = false;
+            let currentPot = 0;
+            let aiDifficulty = 'easy';
+
+            const opponentConfig = {
+                easy: { name: 'Scripter', ante: 5 },
+                medium: { name: 'Netrunner', ante: 15 },
+                hard: { name: 'SysOp', ante: 30 }
+            };
+
+            const powerUpCosts = {
+                scan: 10,
+            };
+
+            // --- Sound Synthesis ---
+            let synth;
+            let pluckSynth;
+            let isAudioReady = false;
+
+            const initAudio = async () => {
+                if (isAudioReady || typeof Tone === 'undefined') return;
+                try {
+                    await Tone.start();
+                    synth = new Tone.Synth().toDestination();
+                    pluckSynth = new Tone.PluckSynth().toDestination();
+                    isAudioReady = true;
+                    console.log("Audio context started.");
+                } catch (e) {
+                    console.error("Could not start audio context. Sounds will be disabled.", e);
+                }
+            };
+            
+            const sounds = {
+                move: () => { if (isAudioReady) synth.triggerAttackRelease("C4", "8n"); },
+                win: () => {
+                    if (!isAudioReady) return;
+                    const now = Tone.now();
+                    pluckSynth.triggerAttackRelease("C5", "8n", now);
+                    pluckSynth.triggerAttackRelease("E5", "8n", now + 0.1);
+                    pluckSynth.triggerAttackRelease("G5", "8n", now + 0.2);
+                },
+                lose: () => { if (isAudioReady) synth.triggerAttackRelease("C3", "4n"); },
+                draw: () => { if (isAudioReady) synth.triggerAttackRelease("E4", "8n"); },
+                click: () => { if (isAudioReady) pluckSynth.triggerAttackRelease("C4", "16n"); },
+                error: () => { if (isAudioReady) synth.triggerAttackRelease("F#3", "8n"); },
+            };
+
+            // --- Game Logic ---
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6]             // Diagonals
+            ];
+
+            const initializeGame = () => {
+                // Render board
+                gameBoardElement.innerHTML = '';
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('board-cell');
+                    cell.dataset.index = i;
+                    cell.addEventListener('click', handleCellClick);
+                    gameBoardElement.appendChild(cell);
+                }
+                updateCreds(0);
+            };
+
+            const startGame = async () => {
+                await initAudio();
+                sounds.click();
+                aiDifficulty = aiOpponentSelect.value;
+                const ante = opponentConfig[aiDifficulty].ante;
+
+                if (playerCreds < ante) {
+                    sounds.error();
+                    showNotification("Insufficient Creds", "Not enough Creds to start this duel!");
+                    return;
+                }
+
+                updateCreds(-ante);
+                currentPot = ante * 2;
+                potDisplay.textContent = currentPot;
+                
+                boardState.fill(null);
+                document.querySelectorAll('.board-cell').forEach(cell => {
+                    cell.textContent = '';
+                    cell.className = 'board-cell';
+                    const mark = cell.querySelector('.mark');
+                    if(mark) mark.remove();
+                });
+                
+                currentPlayer = 'X';
+                gameActive = true;
+                gameStatus.textContent = `Hacking... Your turn.`;
+                gameStatus.classList.remove('glitch');
+
+                wagerScreen.classList.remove('active');
+                gameScreen.classList.add('active');
+            };
+            
+            const handleCellClick = (e) => {
+                if (!gameActive || currentPlayer !== 'X') return;
+                
+                const cell = e.target;
+                const index = parseInt(cell.dataset.index);
+
+                if (boardState[index]) return;
+
+                placeMark(index, 'X');
+                
+                if (checkGameState()) return;
+
+                switchPlayer();
+            };
+            
+            const placeMark = (index, player) => {
+                sounds.move();
+                boardState[index] = player;
+                const cell = gameBoardElement.children[index];
+                cell.classList.add(player, 'occupied');
+                
+                const mark = document.createElement('span');
+                mark.className = 'mark';
+                mark.textContent = player;
+                cell.appendChild(mark);
+            };
+
+            const switchPlayer = () => {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                gameStatus.textContent = currentPlayer === 'X' ? 'Your move...' : `Opponent is thinking...`;
+                if (currentPlayer === 'O' && gameActive) {
+                    gameStatus.classList.add('glitch');
+                    setTimeout(aiMove, 1000 + Math.random() * 500);
+                } else {
+                    gameStatus.classList.remove('glitch');
+                }
+            };
+
+            const checkGameState = () => {
+                const winner = checkWin();
+                if (winner) {
+                    endGame(winner);
+                    return true;
+                }
+                if (checkDraw()) {
+                    endGame('Draw');
+                    return true;
+                }
+                return false;
+            };
+
+            const checkWin = () => {
+                for (const combination of winningCombinations) {
+                    const [a, b, c] = combination;
+                    if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+                        // Highlight winning cells
+                        combination.forEach(index => {
+                           gameBoardElement.children[index].classList.add('winning-cell');
+                        });
+                        return boardState[a];
+                    }
+                }
+                return null;
+            };
+
+            const checkDraw = () => {
+                return boardState.every(cell => cell !== null);
+            };
+
+            const endGame = (result) => {
+                gameActive = false;
+                let title, message;
+                
+                if (result === 'Draw') {
+                    sounds.draw();
+                    title = "System Stalemate";
+                    message = `The hack was a draw. Pot of ${currentPot} is split. You get ${currentPot / 2} Creds back.`;
+                    updateCreds(currentPot / 2);
+                } else if (result === 'X') {
+                    sounds.win();
+                    title = "Hack Successful!";
+                    message = `You outsmarted the system! You win the pot of ${currentPot} Creds.`;
+                    updateCreds(currentPot);
+                } else { // 'O' wins
+                    sounds.lose();
+                    title = "System Compromised!";
+                    message = `The AI's counter-hack was successful. You lost your ante.`;
+                }
+
+                setTimeout(() => showResultModal(title, message), 1500);
+            };
+
+            const updateCreds = (amount) => {
+                playerCreds += amount;
+                credsDisplay.textContent = playerCreds;
+                // Disable powerups if not affordable
+                powerUpScanBtn.disabled = playerCreds < powerUpCosts.scan;
+            };
+
+            const showResultModal = (title, message) => {
+                resultTitle.textContent = title;
+                resultMessage.textContent = message;
+                resultModal.classList.add('show');
+            };
+
+            const resetToWagerScreen = async () => {
+                await initAudio();
+                sounds.click();
+                resultModal.classList.remove('show');
+                gameScreen.classList.remove('active');
+                wagerScreen.classList.add('active');
+                currentPot = 0;
+            };
+
+            const showNotification = (title, message) => {
+                notificationTitle.textContent = title;
+                notificationMessage.textContent = message;
+                notificationModal.classList.add('show');
+            };
+
+            const hideNotification = () => {
+                notificationModal.classList.remove('show');
+            };
+
+
+            // --- AI Logic ---
+            const aiMove = () => {
+                if (!gameActive) return;
+
+                let move;
+                if (aiDifficulty === 'easy') {
+                    move = getRandomMove();
+                } else if (aiDifficulty === 'medium') {
+                    move = getMediumMove();
+                } else { // hard
+                    move = getBestMove();
+                }
+
+                if (move !== null) {
+                    placeMark(move, 'O');
+                    if(checkGameState()) return;
+                    switchPlayer();
+                }
+            };
+            
+            const getEmptyCells = () => {
+                return boardState.map((val, idx) => val === null ? idx : null).filter(val => val !== null);
+            };
+
+            const getRandomMove = () => {
+                const emptyCells = getEmptyCells();
+                return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            };
+            
+            const getMediumMove = () => {
+                // 1. Check for AI win
+                for(const index of getEmptyCells()){
+                    const tempBoard = [...boardState];
+                    tempBoard[index] = 'O';
+                    if (isWinner(tempBoard, 'O')) return index;
+                }
+                // 2. Block player win
+                for(const index of getEmptyCells()){
+                    const tempBoard = [...boardState];
+                    tempBoard[index] = 'X';
+                    if (isWinner(tempBoard, 'X')) return index;
+                }
+                // 3. Random move
+                return getRandomMove();
+            };
+
+            // Minimax for hard AI
+            const getBestMove = () => {
+                let bestScore = -Infinity;
+                let move = null;
+                for (const index of getEmptyCells()) {
+                    boardState[index] = 'O';
+                    let score = minimax(boardState, 0, false);
+                    boardState[index] = null;
+                    if (score > bestScore) {
+                        bestScore = score;
+                        move = index;
+                    }
+                }
+                return move;
+            };
+            
+            const scores = { 'X': -1, 'O': 1, 'Draw': 0 };
+
+            function minimax(board, depth, isMaximizing) {
+                let result = checkWinnerForMinimax(board);
+                if (result !== null) {
+                    return scores[result];
+                }
+
+                if (isMaximizing) {
+                    let bestScore = -Infinity;
+                    for(let i = 0; i < 9; i++){
+                        if(board[i] === null){
+                            board[i] = 'O';
+                            let score = minimax(board, depth + 1, false);
+                            board[i] = null;
+                            bestScore = Math.max(score, bestScore);
+                        }
+                    }
+                    return bestScore;
+                } else {
+                    let bestScore = Infinity;
+                    for(let i = 0; i < 9; i++){
+                        if(board[i] === null){
+                            board[i] = 'X';
+                            let score = minimax(board, depth + 1, true);
+                            board[i] = null;
+                            bestScore = Math.min(score, bestScore);
+                        }
+                    }
+                    return bestScore;
+                }
+            }
+
+            function isWinner(board, player) {
+                for (const combination of winningCombinations) {
+                    const [a, b, c] = combination;
+                    if (board[a] === player && board[b] === player && board[c] === player) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function checkWinnerForMinimax(board) {
+                for (const combination of winningCombinations) {
+                    const [a, b, c] = combination;
+                    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                        return board[a];
+                    }
+                }
+                if (board.every(cell => cell !== null)) {
+                    return 'Draw';
+                }
+                return null;
+            }
+
+
+            // --- Power-ups Logic ---
+            const handlePowerUpScan = async () => {
+                await initAudio();
+                if (playerCreds < powerUpCosts.scan) {
+                    sounds.error();
+                    showNotification("Bribe Failed", "Not enough Creds for this system modification.");
+                    return;
+                }
+                sounds.win();
+                updateCreds(-powerUpCosts.scan);
+                
+                // Simulate AI's first move to show it
+                const tempBoard = Array(9).fill(null);
+                const aiFirstMove = getBestMove(tempBoard, 'O'); // Use hard AI logic for this
+                showNotification("//:Scan_Complete", `The AI's optimal first move is square ${aiFirstMove + 1}. Plan accordingly.`);
+                powerUpScanBtn.disabled = true; // One time use per wager screen
+            };
+
+            // --- Event Listeners ---
+            startGameBtn.addEventListener('click', startGame);
+            quitGameBtn.addEventListener('click', () => {
+                gameActive = false;
+                showResultModal("Hack Aborted", "You pulled the plug. No Creds were lost or gained.");
+            });
+            playAgainBtn.addEventListener('click', resetToWagerScreen);
+            powerUpScanBtn.addEventListener('click', handlePowerUpScan);
+            notificationCloseBtn.addEventListener('click', hideNotification);
+
+            // --- Initial Setup ---
+            initializeGame();
+        });
+    </script>
+</body>
+</html>
+
+
