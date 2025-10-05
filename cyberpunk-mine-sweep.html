@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSweeper: ICE Breaker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Turret+Road:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
+
+    <style>
+        :root {
+            --background-color: #020a1a;
+            --grid-color: #0a1429;
+            --text-color: #e0e0e0;
+            --accent-cyan: #00ffff;
+            --accent-red: #ff004f;
+            --accent-yellow: #fff000;
+            --accent-blue: #4d94ff;
+            --border-color: #00ffff44;
+            --shadow-color: #00ffff88;
+            --red-shadow-color: #ff004f88;
+            --yellow-shadow-color: #fff00088;
+        }
+
+        /* General Body Styles */
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            overflow: auto;
+            background-image:
+                linear-gradient(var(--border-color) 1px, transparent 1px),
+                linear-gradient(to right, var(--border-color) 1px, var(--background-color) 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Header and Creds Display */
+        .header {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            background: #020a1a99;
+            padding: 0.5rem;
+            box-shadow: 0 0 15px var(--shadow-color);
+            border-radius: 8px;
+        }
+
+        #creds-display {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px var(--shadow-color);
+            letter-spacing: 2px;
+        }
+        
+        #creds-display::before {
+            content: 'CR: ';
+            opacity: 0.7;
+        }
+
+        /* Main Game Container */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* System Utilities Bar */
+        .utilities-bar {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .utility-btn {
+            background-color: transparent;
+            border: 2px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 10px 15px;
+            font-family: 'Turret Road', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 0 5px var(--shadow-color), 0 0 5px var(--shadow-color);
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .utility-btn.shield-active {
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+            box-shadow: inset 0 0 10px var(--yellow-shadow-color), 0 0 10px var(--yellow-shadow-color);
+            text-shadow: 0 0 5px var(--yellow-shadow-color);
+        }
+        
+        .utility-btn.scan-active {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+            box-shadow: inset 0 0 10px var(--red-shadow-color), 0 0 10px var(--red-shadow-color);
+            text-shadow: 0 0 5px var(--red-shadow-color);
+        }
+
+        .utility-btn:hover:not(:disabled) {
+            background-color: var(--accent-cyan);
+            color: var(--background-color);
+        }
+        
+        .utility-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: #ffffff44;
+            color: #ffffff44;
+            box-shadow: none;
+        }
+
+        .utility-cost {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        /* Game Grid */
+        #game-grid {
+            display: grid;
+            gap: 4px;
+            padding: 1rem;
+            background-color: #00000044;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 0 20px var(--shadow-color);
+        }
+
+        .cell {
+            width: 35px;
+            height: 35px;
+            background-color: var(--grid-color);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            transition: background-color 0.2s;
+            user-select: none;
+            border-radius: 4px;
+        }
+        
+        .cell:not(.revealed):hover {
+            background-color: #00ffff22;
+        }
+
+        .cell.revealed {
+            background-color: transparent;
+            border-color: #ffffff22;
+            cursor: default;
+        }
+
+        .cell.ice {
+            color: var(--accent-red);
+            text-shadow: 0 0 10px var(--red-shadow-color);
+            animation: pulse-red 1.5s infinite;
+        }
+        
+        .cell.quarantined {
+            color: var(--accent-yellow);
+            text-shadow: 0 0 10px var(--yellow-shadow-color);
+            font-size: 2rem;
+        }
+        
+        .cell.num-1 { color: var(--accent-cyan); }
+        .cell.num-2 { color: #00ff88; }
+        .cell.num-3 { color: #ffaa00; }
+        .cell.num-4 { color: #ff5500; }
+        .cell.num-5 { color: var(--accent-red); }
+        .cell.num-6 { color: #ff00ff; }
+        .cell.num-7 { color: #ffffff; }
+        .cell.num-8 { color: #aaaaaa; }
+
+        /* Modals and Overlays */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--background-color);
+            padding: 2rem;
+            border: 2px solid var(--accent-cyan);
+            border-radius: 8px;
+            box-shadow: 0 0 25px var(--shadow-color);
+            text-align: center;
+            animation: slide-in 0.3s ease-out;
+        }
+        
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 2rem;
+            color: var(--accent-cyan);
+        }
+        
+        .modal-content p {
+            font-family: 'Turret Road', sans-serif;
+        }
+
+        .tier-selection, .game-over-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .tier-btn, .bailout-btn {
+            background-color: transparent;
+            border: 2px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 12px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 0 8px #00ffff44;
+            border-radius: 5px;
+        }
+
+        .tier-btn:hover:not(:disabled) {
+            background-color: var(--accent-cyan);
+            color: var(--background-color);
+        }
+        
+        .tier-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: #ffffff44;
+            color: #ffffff44;
+            box-shadow: none;
+        }
+        
+        .tier-btn span {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            font-weight: 400;
+        }
+        
+        .bailout-btn {
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+        }
+
+        .bailout-btn:hover {
+            background-color: var(--accent-yellow);
+            color: var(--background-color);
+        }
+
+        /* Animations */
+        @keyframes pulse-red {
+            0%, 100% { text-shadow: 0 0 10px var(--red-shadow-color); }
+            50% { text-shadow: 0 0 20px #ff004f; }
+        }
+        
+        @keyframes slide-in {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .glitch-effect {
+            animation: glitch 1s linear infinite;
+        }
+        
+        @keyframes glitch {
+            2%,64% { transform: translate(2px,0) skew(0deg); }
+            4%,60% { transform: translate(-2px,0) skew(0deg); }
+            62% { transform: translate(0,0) skew(5deg); }
+        }
+        
+        /* Message Display */
+        #message-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: bold;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            text-align: center;
+        }
+        
+        #message-display.show {
+            opacity: 1;
+        }
+        
+        #message-display.win {
+            color: var(--accent-cyan);
+            text-shadow: 0 0 15px var(--shadow-color);
+        }
+
+        #message-display.loss {
+            color: var(--accent-red);
+            text-shadow: 0 0 15px var(--red-shadow-color);
+        }
+        
+        #message-display.bounty {
+            color: var(--accent-yellow);
+            text-shadow: 0 0 15px var(--yellow-shadow-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .cell {
+                width: 28px;
+                height: 28px;
+                font-size: 1.2rem;
+            }
+            .header, .game-container {
+                width: 95%;
+            }
+            #creds-display {
+                font-size: 1.5rem;
+            }
+            .utility-btn {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div id="creds-display">1000</div>
+    </div>
+
+    <div class="game-container">
+        <div class="utilities-bar">
+            <button id="scanner-btn" class="utility-btn">SCANNER<span class="utility-cost">Cost: 150 CR</span></button>
+            <button id="shield-btn" class="utility-btn">SHIELD<span class="utility-cost">Cost: 400 CR</span></button>
+            <button id="probe-btn" class="utility-btn">PROBABILITY<span class="utility-cost">Cost: 600 CR</span></button>
+        </div>
+        <div id="game-grid"></div>
+    </div>
+    
+    <div id="message-display"></div>
+
+    <div id="tier-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Select Data Heist</h2>
+            <div class="tier-selection">
+                <button id="tier1-btn" class="tier-btn" data-tier="1">Tier 1: Local Server <span>Cost: 100 CR | Payout: 200 CR</span></button>
+                <button id="tier2-btn" class="tier-btn" data-tier="2">Tier 2: Corp Mainframe <span>Cost: 500 CR | Payout: 2500 CR</span></button>
+                <button id="tier3-btn" class="tier-btn" data-tier="3">Tier 3: Zero-Day Exploit <span>Cost: 2000 CR | Payout: 20000 CR</span></button>
+            </div>
+            <div id="bailout-container" style="display: none; margin-top: 1.5rem;">
+                <p>Creds too low for any heist.</p>
+                <button id="bailout-btn" class="bailout-btn">Request System Bailout (+300 CR)</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="game-over-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2 id="game-over-title"></h2>
+            <p id="game-over-text"></p>
+            <div class="game-over-buttons">
+                <button id="play-again-btn" class="tier-btn">Initiate New Heist</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            // --- DOM Elements ---
+            const credsDisplay = document.getElementById('creds-display');
+            const gameGrid = document.getElementById('game-grid');
+            const tierModal = document.getElementById('tier-modal');
+            const gameOverModal = document.getElementById('game-over-modal');
+            const messageDisplay = document.getElementById('message-display');
+            
+            // Tier Buttons
+            const tier1Btn = document.getElementById('tier1-btn');
+            const tier2Btn = document.getElementById('tier2-btn');
+            const tier3Btn = document.getElementById('tier3-btn');
+
+            // Utility Buttons
+            const scannerBtn = document.getElementById('scanner-btn');
+            const shieldBtn = document.getElementById('shield-btn');
+            const probeBtn = document.getElementById('probe-btn');
+            
+            // Game Over Modal Elements
+            const gameOverTitle = document.getElementById('game-over-title');
+            const gameOverText = document.getElementById('game-over-text');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            
+            // Bailout
+            const bailoutContainer = document.getElementById('bailout-container');
+            const bailoutBtn = document.getElementById('bailout-btn');
+
+            // --- Game State ---
+            let creds = 1000;
+            let currentWager = 0;
+            let currentPayout = 0;
+            let gridState = [];
+            let rows, cols, iceCount;
+            let gameOver = true;
+            let shieldActive = false;
+            let probeActive = false;
+            
+            // --- Audio Synth ---
+            let synth, noiseSynth;
+            const soundsReady = new Promise(resolve => {
+                Tone.loaded().then(() => {
+                    synth = new Tone.PolySynth(Tone.Synth, {
+                        oscillator: { type: "triangle" },
+                        envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
+                    }).toDestination();
+                    
+                    noiseSynth = new Tone.NoiseSynth({
+                        noise: { type: 'white' },
+                        envelope: { attack: 0.005, decay: 0.1, sustain: 0 }
+                    }).toDestination();
+                    resolve();
+                });
+            });
+
+            const playSound = (soundType, ...args) => {
+                soundsReady.then(() => {
+                    if (!synth || !Tone.context.state === 'running') return;
+                    const now = Tone.now();
+                    switch(soundType) {
+                        case 'click':
+                            synth.triggerAttackRelease("C5", "8n", now);
+                            break;
+                        case 'flag':
+                            synth.triggerAttackRelease("G4", "8n", now);
+                            break;
+                        case 'unflag':
+                            synth.triggerAttackRelease("E4", "8n", now);
+                            break;
+                        case 'win':
+                            synth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "8n", now);
+                            break;
+                        case 'loss':
+                            noiseSynth.triggerAttackRelease("16n", now);
+                            synth.triggerAttackRelease("C2", "8n", now);
+                            break;
+                        case 'bounty':
+                            synth.triggerAttackRelease(["C5", "G5", "C6"], ["16n", "16n", "8n"], now);
+                            break;
+                        case 'shield_on':
+                            synth.triggerAttackRelease("A4", "4n", now);
+                            break;
+                        case 'shield_block':
+                             synth.triggerAttackRelease("F3", "4n", now);
+                            break;
+                    }
+                });
+            };
+            
+            // Start audio context on first user interaction
+            document.body.addEventListener('click', async () => {
+                if (Tone.context.state !== 'running') {
+                    await Tone.start();
+                }
+            }, { once: true });
+
+
+            // --- Core Game Logic ---
+
+            function loadCreds() {
+                const savedCreds = localStorage.getItem('cyberSweeperCreds');
+                creds = savedCreds ? parseInt(savedCreds, 10) : 1000;
+                updateCredsDisplay();
+            }
+
+            function saveCreds() {
+                localStorage.setItem('cyberSweeperCreds', creds);
+            }
+
+            function updateCredsDisplay() {
+                credsDisplay.innerText = creds;
+                
+                // Update tier button states
+                const tiers = [
+                    { btn: tier1Btn, cost: 100 },
+                    { btn: tier2Btn, cost: 500 },
+                    { btn: tier3Btn, cost: 2000 }
+                ];
+                
+                let canAffordAny = false;
+                tiers.forEach(tier => {
+                    tier.btn.disabled = creds < tier.cost;
+                    if(creds >= tier.cost) canAffordAny = true;
+                });
+                
+                bailoutContainer.style.display = canAffordAny ? 'none' : 'block';
+                
+                // Update utility button states
+                scannerBtn.disabled = creds < 150 || gameOver;
+                shieldBtn.disabled = creds < 400 || gameOver || shieldActive;
+                probeBtn.disabled = creds < 600 || gameOver || probeActive;
+            }
+
+            function startGame(tier) {
+                const tierSettings = {
+                    1: { rows: 8, cols: 8, ice: 10, cost: 100, payout: 200 },
+                    2: { rows: 12, cols: 12, ice: 25, cost: 500, payout: 2500 },
+                    3: { rows: 16, cols: 16, ice: 60, cost: 2000, payout: 20000 }
+                };
+
+                const settings = tierSettings[tier];
+                if (creds < settings.cost) {
+                    showMessage("INSUFFICIENT CREDS", "loss", 1500);
+                    return;
+                }
+                
+                creds -= settings.cost;
+                currentWager = settings.cost;
+                currentPayout = settings.payout;
+                saveCreds();
+                updateCredsDisplay();
+                
+                rows = settings.rows;
+                cols = settings.cols;
+                iceCount = settings.ice;
+                
+                gameOver = false;
+                shieldActive = false;
+                probeActive = false;
+                updateUtilityButtons();
+                
+                initializeGrid();
+                renderGrid();
+                
+                tierModal.style.display = 'none';
+            }
+            
+            function initializeGrid() {
+                // Create empty grid
+                gridState = Array(rows).fill(null).map(() => Array(cols).fill(null).map(() => ({
+                    isIce: false,
+                    isRevealed: false,
+                    isQuarantined: false,
+                    adjacentIce: 0
+                })));
+                
+                // Place ICEs randomly
+                let placedIce = 0;
+                while (placedIce < iceCount) {
+                    const r = Math.floor(Math.random() * rows);
+                    const c = Math.floor(Math.random() * cols);
+                    if (!gridState[r][c].isIce) {
+                        gridState[r][c].isIce = true;
+                        placedIce++;
+                    }
+                }
+                
+                // Calculate adjacent numbers
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (gridState[r][c].isIce) continue;
+                        let count = 0;
+                        for (let dr = -1; dr <= 1; dr++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                if (dr === 0 && dc === 0) continue;
+                                const nr = r + dr;
+                                const nc = c + dc;
+                                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && gridState[nr][nc].isIce) {
+                                    count++;
+                                }
+                            }
+                        }
+                        gridState[r][c].adjacentIce = count;
+                    }
+                }
+            }
+
+            function renderGrid() {
+                gameGrid.innerHTML = '';
+                gameGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+                
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('cell');
+                        cell.dataset.row = r;
+                        cell.dataset.col = c;
+                        
+                        cell.addEventListener('click', () => handleCellClick(r, c));
+                        cell.addEventListener('contextmenu', (e) => {
+                            e.preventDefault();
+                            handleRightClick(r, c);
+                        });
+                        
+                        gameGrid.appendChild(cell);
+                    }
+                }
+            }
+            
+            function updateCell(r, c) {
+                const cell = document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
+                if (!cell) return;
+                
+                const state = gridState[r][c];
+                cell.innerHTML = '';
+                cell.className = 'cell'; // Reset classes
+                
+                if (state.isQuarantined) {
+                    cell.classList.add('quarantined');
+                    cell.innerHTML = '⛫'; // Quarantine symbol
+                } else if (state.isRevealed) {
+                    cell.classList.add('revealed');
+                    if (state.isIce) {
+                        cell.classList.add('ice');
+                        cell.innerHTML = '❖'; // ICE symbol
+                    } else if (state.adjacentIce > 0) {
+                        cell.innerHTML = state.adjacentIce;
+                        cell.classList.add(`num-${state.adjacentIce}`);
+                    }
+                }
+            }
+
+            function handleCellClick(r, c) {
+                if (gameOver) return;
+                const state = gridState[r][c];
+                if (state.isRevealed || state.isQuarantined) return;
+                
+                if (probeActive) {
+                    runProbabilityScan(r, c);
+                    return;
+                }
+
+                if (state.isIce) {
+                    if (shieldActive) {
+                        playSound('shield_block');
+                        shieldActive = false;
+                        state.isRevealed = true;
+                        updateCell(r, c);
+                        updateUtilityButtons();
+                        showMessage("SHIELD USED", "win", 1000);
+                        return;
+                    }
+                    playSound('loss');
+                    endGame(false);
+                } else {
+                    playSound('click');
+                    revealCell(r, c);
+                    // Data Bounty Chance
+                    if (Math.random() < 0.05) { // 5% chance
+                        const bountyAmount = Math.floor(Math.random() * (currentWager * 0.5)) + 10;
+                        creds += bountyAmount;
+                        saveCreds();
+                        updateCredsDisplay();
+                        showMessage(`+${bountyAmount} CR BOUNTY!`, 'bounty', 1500);
+                        playSound('bounty');
+                    }
+                    checkWinCondition();
+                }
+            }
+
+            function handleRightClick(r, c) {
+                if (gameOver) return;
+                const state = gridState[r][c];
+                if (state.isRevealed) return;
+                
+                state.isQuarantined = !state.isQuarantined;
+                playSound(state.isQuarantined ? 'flag' : 'unflag');
+                updateCell(r, c);
+            }
+            
+            function revealCell(r, c) {
+                if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+                const state = gridState[r][c];
+                if (state.isRevealed || state.isQuarantined) return;
+                
+                state.isRevealed = true;
+                updateCell(r,c);
+                
+                if (state.adjacentIce === 0 && !state.isIce) {
+                    // Flood fill for empty cells
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            if (dr === 0 && dc === 0) continue;
+                            revealCell(r + dr, c + dc);
+                        }
+                    }
+                }
+            }
+            
+            function checkWinCondition() {
+                let revealedCount = 0;
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (gridState[r][c].isRevealed) {
+                            revealedCount++;
+                        }
+                    }
+                }
+                if (revealedCount === (rows * cols) - iceCount) {
+                    playSound('win');
+                    endGame(true);
+                }
+            }
+
+            function endGame(isWin) {
+                gameOver = true;
+                probeActive = false;
+                updateUtilityButtons();
+
+                // Reveal all ICE
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (gridState[r][c].isIce) {
+                            gridState[r][c].isRevealed = true;
+                            updateCell(r, c);
+                        }
+                    }
+                }
+
+                if (isWin) {
+                    creds += currentPayout;
+                    saveCreds();
+                    updateCredsDisplay();
+                    gameOverTitle.innerText = "ACCESS GRANTED";
+                    gameOverText.innerText = `Heist successful. You've secured ${currentPayout} CR.`;
+                } else {
+                    gameOverTitle.innerText = "CONNECTION TERMINATED";
+                    gameOverText.innerText = `ICE detected. You've lost your buy-in of ${currentWager} CR.`;
+                    document.body.classList.add('glitch-effect');
+                }
+                
+                setTimeout(() => {
+                    document.body.classList.remove('glitch-effect');
+                    gameOverModal.style.display = 'flex';
+                }, 2000);
+            }
+            
+            function showMessage(text, type, duration) {
+                messageDisplay.innerText = text;
+                messageDisplay.className = `show ${type}`;
+                setTimeout(() => {
+                    messageDisplay.className = '';
+                }, duration);
+            }
+            
+            function updateUtilityButtons() {
+                scannerBtn.disabled = creds < 150 || gameOver;
+                shieldBtn.disabled = creds < 400 || gameOver || shieldActive;
+                probeBtn.disabled = creds < 600 || gameOver || probeActive;
+                
+                shieldBtn.classList.toggle('shield-active', shieldActive);
+                probeBtn.classList.toggle('scan-active', probeActive);
+            }
+            
+            // --- Utility Functions ---
+            function useScannerSweep() {
+                if (gameOver || creds < 150) return;
+                creds -= 150;
+                saveCreds();
+                updateCredsDisplay();
+                
+                let safeCells = [];
+                 for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const state = gridState[r][c];
+                        if (!state.isIce && !state.isRevealed && !state.isQuarantined) {
+                            safeCells.push({r, c});
+                        }
+                    }
+                }
+                
+                if (safeCells.length > 0) {
+                    const {r, c} = safeCells[Math.floor(Math.random() * safeCells.length)];
+                    revealCell(r, c);
+                    checkWinCondition();
+                }
+            }
+
+            function useShieldProtocol() {
+                if (gameOver || creds < 400 || shieldActive) return;
+                creds -= 400;
+                shieldActive = true;
+                playSound('shield_on');
+                saveCreds();
+                updateCredsDisplay();
+                updateUtilityButtons();
+                showMessage("SHIELD ACTIVE", "win", 1500);
+            }
+
+            function useProbabilityScan() {
+                if (gameOver || creds < 600) return;
+                creds -= 600;
+                probeActive = true;
+                saveCreds();
+                updateCredsDisplay();
+                updateUtilityButtons();
+                showMessage("PROBABILITY SCAN ARMED", "loss", 2000);
+            }
+            
+            function runProbabilityScan(r, c) {
+                probeActive = false; // one-time use
+                updateUtilityButtons();
+                
+                let adjacentFlags = 0;
+                let adjacentUnrevealed = 0;
+                let highestAdjacentNumber = 0;
+
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        if (dr === 0 && dc === 0) continue;
+                        const nr = r + dr;
+                        const nc = c + dc;
+
+                        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                           const neighbor = gridState[nr][nc];
+                           if(neighbor.isRevealed && neighbor.adjacentIce > 0) {
+                               // This is where a more complex solver would go.
+                               // For simplicity, we'll check the direct neighbors for clues.
+                               let sub_unrevealed = 0;
+                               let sub_flags = 0;
+                               for(let dr2 = -1; dr2 <=1; dr2++) {
+                                   for(let dc2 = -1; dc2 <=1; dc2++) {
+                                       const nnr = nr + dr2;
+                                       const nnc = nc + dc2;
+                                       if(nnr >= 0 && nnr < rows && nnc >= 0 && nnc < cols) {
+                                           const sub_neighbor = gridState[nnr][nnc];
+                                           if(!sub_neighbor.isRevealed && !sub_neighbor.isQuarantined) sub_unrevealed++;
+                                           if(sub_neighbor.isQuarantined) sub_flags++;
+                                       }
+                                   }
+                               }
+                               if(sub_unrevealed > 0){
+                                   let probability = (neighbor.adjacentIce - sub_flags) / sub_unrevealed * 100;
+                                   if(probability > highestAdjacentNumber) {
+                                       highestAdjacentNumber = probability;
+                                   }
+                               }
+                           }
+                        }
+                    }
+                }
+                
+                let finalProbability = highestAdjacentNumber > 0 ? highestAdjacentNumber : (iceCount / (rows*cols) * 100);
+
+                showMessage(`ICE Probability: ~${Math.max(0, Math.min(100, finalProbability.toFixed(1)))}%`, 'bounty', 3000);
+            }
+
+            // --- Event Listeners ---
+            tier1Btn.addEventListener('click', () => startGame(1));
+            tier2Btn.addEventListener('click', () => startGame(2));
+            tier3Btn.addEventListener('click', () => startGame(3));
+            
+            scannerBtn.addEventListener('click', useScannerSweep);
+            shieldBtn.addEventListener('click', useShieldProtocol);
+            probeBtn.addEventListener('click', useProbabilityScan);
+
+            playAgainBtn.addEventListener('click', () => {
+                gameOverModal.style.display = 'none';
+                tierModal.style.display = 'flex';
+                updateCredsDisplay();
+            });
+            
+            bailoutBtn.addEventListener('click', () => {
+                creds += 300;
+                saveCreds();
+                updateCredsDisplay();
+                showMessage("+300 CR BAILOUT", "win", 1500);
+            });
+            
+            // --- Initial Load ---
+            loadCreds();
+            updateCredsDisplay();
+        });
+    </script>
+
+</body>
+</html>
+
