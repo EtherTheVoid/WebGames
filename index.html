@@ -12,62 +12,54 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+
 
     <style>
-        /* Custom styles for the cyberpunk aesthetic */
-        body {
-            background-color: #0a0a1a;
-            font-family: 'Roboto Mono', monospace;
-            color: #e0e0e0;
-            overflow: auto;
-            /* Prevents scrollbars from the background animation */
+        /* ========================================
+        CORE STYLES INSPIRED BY CYBERPUNK 2077 UI
+        ========================================
+        */
+
+        :root {
+            --cyber-cyan: #00f6ff;
+            --cyber-red: #ff3c3c;
+            --cyber-yellow: #f0ff00;
+            --cyber-magenta: #ff00ff;
+            --dark-background: #01040a;
+            --ui-background: rgba(13, 33, 41, 0.9);
+            --border-color: rgba(0, 246, 255, 0.3);
         }
 
-        /* Set custom fonts using Tailwind's theme extension */
+        body {
+            background-color: var(--dark-background);
+            /* Gradient is now a fallback, main bg is the canvas */
+            background-image: radial-gradient(ellipse at center, rgba(80, 0, 120, 0.2) 0%, transparent 60%);
+            font-family: 'Rajdhani', sans-serif;
+            color: #e0e0e0;
+            overflow: auto; /* Prevent scrollbars from canvas */
+        }
+
+        /* Set custom fonts */
         .font-orbitron {
             font-family: 'Orbitron', sans-serif;
         }
 
-        .font-roboto-mono {
-            font-family: 'Roboto Mono', monospace;
+        .font-rajdhani {
+            font-family: 'Rajdhani', sans-serif;
         }
 
-        /* Background animation: Digital Rain */
-        .background-container {
+        /* Background Canvas Styling */
+        #wave-background-container {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: #0a0a1a;
-            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
         }
-
-        .digital-rain {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: linear-gradient(0deg, transparent, #00ffcc 1px);
-            background-repeat: repeat;
-            background-size: 3px 100px;
-            animation: rain-fall 20s linear infinite;
-            opacity: 0.1;
-        }
-
-        @keyframes rain-fall {
-            from {
-                background-position: 0 0;
-            }
-
-            to {
-                background-position: 0 1000px;
-            }
+        canvas {
+            display: block;
         }
 
         /* Scanlines overlay effect */
@@ -89,84 +81,81 @@
             width: 100%;
             height: 100%;
             background: repeating-linear-gradient(0deg,
-                    rgba(0, 0, 0, 0.3),
-                    rgba(0, 0, 0, 0.3) 1px,
+                    rgba(0, 0, 0, 0.5),
+                    rgba(0, 0, 0, 0.5) 1px,
                     transparent 1px,
-                    transparent 3px);
-            opacity: 0.6;
+                    transparent 4px);
+            opacity: 0.4;
+            animation: scanline-flicker 15s linear infinite;
+        }
+
+        @keyframes scanline-flicker {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(2px); }
+            100% { transform: translateY(0); }
+        }
+        
+        /* Version info text at corners */
+        .version-info {
+            position: fixed;
+            bottom: 1rem;
+            right: 1.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: rgba(224, 224, 224, 0.3);
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            letter-spacing: 2px;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+         .top-left-info {
+            position: fixed;
+            top: 1rem;
+            left: 1.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: rgba(224, 224, 224, 0.3);
+            letter-spacing: 2px;
+            pointer-events: none;
+            z-index: 50;
         }
 
         /* Neon glow effect for the main title */
         .neon-cyan-glow {
+            color: var(--cyber-cyan);
             text-shadow:
-                0 0 5px #00ffcc,
-                0 0 10px #00ffcc,
-                0 0 20px #00ffcc,
-                0 0 40px #00ffcc,
-                0 0 70px #00ffcc;
+                0 0 5px var(--cyber-cyan),
+                0 0 10px var(--cyber-cyan),
+                0 0 20px var(--cyber-cyan),
+                0 0 40px #00a1a8;
         }
 
         /* Flickering/glitch animation for the tagline */
         .glitch-text {
-            animation: glitch 1.5s linear infinite alternate-reverse;
+            animation: glitch 2.5s linear infinite alternate-reverse;
         }
 
         @keyframes glitch {
-
-            0%,
-            100% {
-                opacity: 1;
-                text-shadow: 0 0 2px #e0e0e0;
-            }
-
-            25% {
-                opacity: 0.9;
-                text-shadow: 1px 1px 2px #00ffcc;
-            }
-
-            50% {
-                opacity: 0.95;
-                text-shadow: -1px -1px 2px #ff00ff;
-            }
-
-            75% {
-                opacity: 0.9;
-                text-shadow: 1px -1px 2px #00ffcc;
-            }
+            0%, 100% { opacity: 1; text-shadow: 0 0 2px #e0e0e0; }
+            48% { opacity: 1; }
+            50% { opacity: 0.6; transform: translateX(2px); text-shadow: 1px 1px 2px var(--cyber-red); }
+            52% { opacity: 1; transform: translateX(0); }
+            68% { opacity: 1; }
+            70% { opacity: 0.7; transform: translateX(-2px); text-shadow: -1px -1px 2px var(--cyber-cyan); }
+            72% { opacity: 1; transform: translateX(0); }
         }
 
-        /* Game Card styling */
+        /* ========================================
+        GAME CARD STYLING
+        ========================================
+        */
         .game-card {
-            background: rgba(15, 23, 42, 0.4);
-            /* slate-900 with alpha */
-            border: 1px solid rgba(255, 0, 255, 0.3);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            box-shadow: 0 0 5px rgba(255, 0, 255, 0.2), inset 0 0 5px rgba(255, 0, 255, 0.2);
-            animation: pulse-border-magenta 4s infinite;
-        }
-
-        @keyframes pulse-border-magenta {
-
-            0%,
-            100% {
-                border-color: rgba(255, 0, 255, 0.3);
-                box-shadow: 0 0 5px rgba(255, 0, 255, 0.2), inset 0 0 5px rgba(255, 0, 255, 0.2);
-            }
-
-            50% {
-                border-color: rgba(255, 0, 255, 0.7);
-                box-shadow: 0 0 15px rgba(255, 0, 255, 0.6), inset 0 0 10px rgba(255, 0, 255, 0.4);
-            }
-        }
-
-        /* Hover effect for game cards */
-        .game-card:hover {
-            transform: translateY(-10px) scale(1.03);
-            border-color: #f0ff00;
-            box-shadow: 0 0 20px #f0ff00, inset 0 0 15px #f0ff00;
-            animation: none;
+            background: var(--ui-background);
+            border: 1px solid; /* Border color will be set by modifier classes */
+            transition: all 0.3s ease-in-out;
+            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
         }
 
         .game-card .launch-button {
@@ -180,22 +169,55 @@
             transform: translateY(0);
         }
 
-        .game-card:hover .game-title {
-            color: #f0ff00;
-            text-shadow: 0 0 5px #f0ff00;
+        .game-card:hover {
+            transform: translateY(-8px);
         }
 
+        .game-card:hover .game-title {
+             text-shadow: 0 0 8px; /* Shadow color inherited */
+        }
+
+        /* === Card Hue Modifiers === */
+        .card-hue-red { 
+            border-color: rgba(255, 60, 60, 0.4);
+        }
+        .card-hue-red:hover {
+            border-color: var(--cyber-red);
+            box-shadow: 0 0 20px rgba(255, 60, 60, 0.4), inset 0 0 10px rgba(255, 60, 60, 0.2);
+        }
+        .card-hue-red:hover .game-title { color: var(--cyber-red); }
+
+        .card-hue-cyan {
+            border-color: var(--border-color);
+        }
+        .card-hue-cyan:hover {
+            border-color: var(--cyber-cyan);
+            box-shadow: 0 0 20px rgba(0, 246, 255, 0.4), inset 0 0 10px rgba(0, 246, 255, 0.2);
+        }
+        .card-hue-cyan:hover .game-title { color: var(--cyber-cyan); }
+
+        .card-hue-yellow {
+            border-color: rgba(240, 255, 0, 0.4);
+        }
+        .card-hue-yellow:hover {
+            border-color: var(--cyber-yellow);
+            box-shadow: 0 0 20px rgba(240, 255, 0, 0.4), inset 0 0 10px rgba(240, 255, 0, 0.2);
+        }
+        .card-hue-yellow:hover .game-title { color: var(--cyber-yellow); }
+
         .launch-button {
-            background-color: rgba(240, 255, 0, 0.1);
-            border: 1px solid #f0ff00;
-            color: #f0ff00;
-            text-shadow: 0 0 5px #f0ff00;
+            background-color: transparent;
+            border: 1px solid var(--cyber-yellow);
+            color: var(--cyber-yellow);
+            text-shadow: 0 0 5px var(--cyber-yellow);
+            font-weight: 700;
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
         }
 
         .launch-button:hover {
-            background-color: rgba(240, 255, 0, 0.3);
-            box-shadow: 0 0 15px #f0ff00;
+            background-color: rgba(240, 255, 0, 0.15);
+            box-shadow: 0 0 15px var(--cyber-yellow);
         }
 
         .game-card img {
@@ -203,99 +225,184 @@
         }
 
         .game-card:hover img {
-            filter: brightness(0.7);
+            filter: brightness(0.6);
+        }
+        
+        .game-title-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(to top, rgba(1, 4, 10, 0.95), transparent);
         }
     </style>
 </head>
 
-<body class="flex items-center justify-center min-h-screen">
+<body>
 
-    <!-- Background and Scanlines overlays -->
-    <div class="background-container">
-        <div class="digital-rain"></div>
-    </div>
+    <!-- Background and Decorative Overlays -->
+    <div id="wave-background-container"></div>
     <div class="scanlines"></div>
+    <div class="top-left-info">// STATUS: ONLINE</div>
+    <div class="version-info">// SYS_VER_2.0.77</div>
 
-    <div class="container mx-auto p-8 text-center w-full relative z-10">
+    <!-- Main Content Wrapper -->
+    <div class="relative z-10 flex items-center justify-center min-h-screen p-4 sm:p-6 md:p-8">
+        <div class="container mx-auto text-center w-full">
 
-        <!-- Header Section -->
-        <header class="mb-12 md:mb-16">
-            <h1
-                class="font-orbitron text-5xl md:text-7xl lg:text-8xl font-black uppercase text-cyan-300 neon-cyan-glow tracking-widest">
-                Gridrunner Games
-            </h1>
-            <p class="font-roboto-mono text-lg md:text-xl text-gray-300 mt-4 glitch-text">
-                Jack in. Load up. Game on.
-            </p>
-        </header>
+            <!-- Header Section -->
+            <header class="mb-12 md:mb-16">
+                <h1 class="font-orbitron text-5xl md:text-7xl lg:text-8xl font-black uppercase neon-cyan-glow tracking-widest">
+                    Gridrunner Games
+                </h1>
+                <p class="font-rajdhani text-lg md:text-xl text-gray-300 mt-4 glitch-text font-bold tracking-wider">
+                    > Jack in. Load up. Game on.
+                </p>
+            </header>
 
-        <!-- Game Selection Grid -->
-        <main>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+            <!-- Game Selection Grid -->
+            <main>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
 
-                <!-- Game Card 1: Cyber Snake: Grid Runner -->
-                <a href="cyberpunk-snake.html">
-                    <div class="game-card group relative overflow-hidden rounded-lg cursor-pointer">
-                        <img src="https://placehold.co/600x400/0a0a1a/00ffcc?text=CYBER%0ASNAKE"
-                            alt="Cyber Snake: Grid Runner" class="w-full h-auto object-cover">
-                        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                            <button class="launch-button font-orbitron text-xl py-3 px-6 rounded-md">
-                                ▶ LAUNCH
-                            </button>
+                    <!-- Game Card: Data Heist Slots -->
+                    <a href="cyberpunk-slots.html">
+                        <div class="game-card card-hue-red group relative overflow-hidden cursor-pointer">
+                            <img src="https://placehold.co/600x400/01040a/ff3c3c?text=DATA%20HEIST" alt="Data Heist Slots" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                                <button class="launch-button font-orbitron text-xl py-3 px-6">
+                                    ▶ LAUNCH
+                                </button>
+                            </div>
+                            <div class="game-title-container">
+                                <h2 class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300 text-left">
+                                    ULTIMATE WINNER</h2>
+                            </div>
                         </div>
-                        <div
-                            class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black via-black/70 to-transparent">
-                            <h2
-                                class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300">
-                                Grid Runner</h2>
+                    </a>
+                    
+                    <!-- Game Card: Neon Noughts & Crosses -->
+                    <a href="cyberpunk-tic-tac-toe.html">
+                        <div class="game-card card-hue-cyan group relative overflow-hidden cursor-pointer">
+                            <img src="https://placehold.co/600x400/01040a/00f6ff?text=NEON%20NOUGHTS" alt="Neon Noughts & Crosses" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                                <button class="launch-button font-orbitron text-xl py-3 px-6">
+                                    ▶ LAUNCH
+                                </button>
+                            </div>
+                            <div class="game-title-container">
+                                <h2 class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300 text-left">
+                                    THE CYBER-DUEL</h2>
+                            </div>
                         </div>
-                    </div>
-                </a>
+                    </a>
 
-                <!-- Game Card 2: Data Heist Slots -->
-                <a href="cyberpunk-slots.html">
-                    <div class="game-card group relative overflow-hidden rounded-lg cursor-pointer"
-                        style="animation-delay: -1.3s;">
-                        <img src="https://placehold.co/600x400/0a0a1a/ff00ff?text=DATA%20HEIST%0ASLOTS"
-                            alt="Data Heist Slots" class="w-full h-auto object-cover">
-                        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                            <button class="launch-button font-orbitron text-xl py-3 px-6 rounded-md">
-                                ▶ LAUNCH
-                            </button>
+                    <!-- Game Card: CyberSweeper -->
+                    <a href="cyberpunk-mine-sweep.html">
+                        <div class="game-card card-hue-yellow group relative overflow-hidden cursor-pointer">
+                            <img src="https://placehold.co/600x400/01040a/f0ff00?text=CYBERSWEEPER" alt="CyberSweeper" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                                <button class="launch-button font-orbitron text-xl py-3 px-6">
+                                    ▶ LAUNCH
+                                </button>
+                            </div>
+                            <div class="game-title-container">
+                                <h2 class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300 text-left">
+                                    SKULL CRUSHER</h2>
+                            </div>
                         </div>
-                        <div
-                            class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black via-black/70 to-transparent">
-                            <h2
-                                class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300">
-                                Ultimate Winner</h2>
-                        </div>
-                    </div>
-                </a>
+                    </a>
 
-                <!-- Game Card 3: Neon Noughts & Crosses: The Cyber-Duel< -->
-                <a href="cyberpunk-tic-tac-toe.html">
-                    <div class="game-card group relative overflow-hidden rounded-lg cursor-pointer"
-                        style="animation-delay: -2.6s;">
-                        <img src="https://placehold.co/600x400/0a0a1a/f0ff00?text=NEON%20NOUGHTS%0ACROSSES"
-                            alt="Cyberpunk Slot Machine Game" class="w-full h-auto object-cover">
-                        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                            <button class="launch-button font-orbitron text-xl py-3 px-6 rounded-md">
-                                ▶ LAUNCH
-                            </button>
+                    <!-- Game Card: Cyber Snake -->
+                    <a href="cyberpunk-snake.html">
+                        <div class="game-card card-hue-cyan group relative overflow-hidden cursor-pointer">
+                            <img src="https://placehold.co/600x400/01040a/00f6ff?text=CYBER%20SNAKE" alt="Cyber Snake" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                                <button class="launch-button font-orbitron text-xl py-3 px-6">
+                                    ▶ LAUNCH
+                                </button>
+                            </div>
+                            <div class="game-title-container">
+                                <h2 class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300 text-left">
+                                    GRID RUNNER</h2>
+                            </div>
                         </div>
-                        <div
-                            class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black via-black/70 to-transparent">
-                            <h2
-                                class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300">
-                                The Cyber-Duel</h2>
-                        </div>
-                    </div>
-                </a>
-
-            </div>
-        </main>
+                    </a>
+                </div>
+            </main>
+        </div>
     </div>
+    
+    <script>
+        const waveContainer = document.getElementById('wave-background-container');
+        const canvas = document.createElement('canvas');
+        waveContainer.appendChild(canvas);
+        const ctx = canvas.getContext('2d');
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        const chars = ".";
+        
+        const fontSize = 14;
+        const columns = Math.ceil(width / fontSize);
+        const rows = Math.ceil(height / fontSize);
+        
+        let time = 0;
+
+        function draw() {
+            // Use a semi-transparent background to create a trailing effect
+            ctx.fillStyle = 'rgba(1, 4, 10, 0.15)'; 
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.font = fontSize + 'px monospace';
+
+            // Two interfering sine waves for a more complex, ocean-like motion
+            const amp1 = 20, freq1 = 0.05, speed1 = 0.015;
+            const amp2 = 15, freq2 = 0.03, speed2 = -0.01; // Negative speed for opposite direction
+
+            for (let j = 0; j < rows; j++) {
+                for (let i = 0; i < columns; i++) {
+                    const x = i * fontSize;
+                    const y = j * fontSize;
+
+                    // Calculate wave offsets using sine and cosine for variety
+                    const offsetY1 = amp1 * Math.sin(freq1 * i + time * speed1 + j * 0.1);
+                    const offsetY2 = amp2 * Math.cos(freq2 * (i + j) + time * speed2);
+                    const totalOffset = offsetY1 + offsetY2;
+
+                    const finalY = y + totalOffset;
+
+                    // Opacity is brighter at the crests of the waves
+                    const normalizedOffset = (totalOffset / (amp1 + amp2) + 1) / 2;
+                    const opacity = 0.05 + normalizedOffset * 0.15; 
+
+                    ctx.fillStyle = `rgba(0, 246, 255, ${opacity})`;
+
+                    // Pick a random character for each frame to create a shimmering effect
+                    const character = chars[Math.floor(Math.random() * chars.length)];
+                    
+                    // Draw the character at its wave--displaced position
+                    if (finalY > 0 && finalY < height) {
+                        ctx.fillText(character, x, finalY);
+                    }
+                }
+            }
+            
+            time += 1;
+            requestAnimationFrame(draw);
+        }
+        
+        draw();
+    </script>
 
 </body>
 
 </html>
+
