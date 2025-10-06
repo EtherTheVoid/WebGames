@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creds & Cores: The Data Miner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Custom Styles for Cyberpunk Theme */
+        :root {
+            --primary-glow: #00ffff;
+            --secondary-glow: #ff00ff;
+            --accent-glow: #7fff00;
+            --dark-bg: #0a0a1a;
+            --panel-bg: rgba(26, 26, 46, 0.8);
+            --border-color: rgba(0, 255, 255, 0.5);
+        }
+
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--primary-glow);
+            text-shadow: 0 0 5px rgba(0, 255, 255, 0.7);
+            background-image:
+                linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .cyber-panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 15px var(--border-color), inset 0 0 10px rgba(0, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .cyber-button {
+            background-color: rgba(0, 255, 255, 0.1);
+            border: 1px solid var(--primary-glow);
+            color: var(--primary-glow);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .cyber-button:hover:not(:disabled) {
+            background-color: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .cyber-button:disabled {
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
+            background-color: rgba(85, 85, 85, 0.2);
+        }
+
+        .cyber-button.secondary {
+            border-color: var(--secondary-glow);
+            color: var(--secondary-glow);
+            background-color: rgba(255, 0, 255, 0.1);
+        }
+
+        .cyber-button.secondary:hover:not(:disabled) {
+            background-color: rgba(255, 0, 255, 0.3);
+            box-shadow: 0 0 10px var(--secondary-glow);
+        }
+
+        .glitch {
+            animation: glitch 1.5s linear infinite;
+        }
+
+        @keyframes glitch {
+
+            2%,
+            64% {
+                transform: translate(2px, 0) skew(0deg);
+            }
+
+            4%,
+            60% {
+                transform: translate(-2px, 0) skew(0deg);
+            }
+
+            62% {
+                transform: translate(0, 0) skew(5deg);
+            }
+        }
+
+        #mining-console {
+            width: 200px;
+            height: 200px;
+            border: 2px solid var(--primary-glow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            position: relative;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.2) 0%, rgba(0, 255, 255, 0) 70%);
+        }
+
+        #mining-console:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 30px var(--primary-glow);
+        }
+
+        .click-feedback {
+            position: absolute;
+            font-size: 1.5rem;
+            color: var(--accent-glow);
+            opacity: 1;
+            pointer-events: none;
+            animation: fade-up 1s forwards;
+        }
+
+        @keyframes fade-up {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        /* Tooltip Styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark-bg);
+            color: var(--primary-glow);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--border-color);
+            font-size: 0.8rem;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-cyan-300 p-2 sm:p-4">
+
+    <!-- Main Game Container -->
+    <div id="game-container" class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        <!-- Header Section -->
+        <header
+            class="col-span-1 lg:col-span-3 cyber-panel p-4 rounded-lg flex flex-col sm:flex-row justify-between items-center text-center sm:text-left">
+            <div>
+                <h1 class="font-orbitron text-3xl sm:text-4xl font-bold glitch"
+                    style="--secondary-glow: #ff00ff; text-shadow: 0 0 10px var(--secondary-glow);">Creds & Cores</h1>
+                <p class="text-sm text-cyan-400">The Data Miner</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4 mt-4 sm:mt-0 text-lg">
+                <div class="cyber-panel px-3 py-1 rounded">
+                    Creds: <span id="creds-display" class="font-bold font-orbitron">0</span>
+                </div>
+                <div class="cyber-panel px-3 py-1 rounded">
+                    Data Cores: <span id="cores-display" class="font-bold font-orbitron">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Left Column: Mining & Core Actions -->
+        <div class="col-span-1 lg:col-span-1 flex flex-col gap-4">
+            <div class="cyber-panel p-4 rounded-lg flex flex-col items-center gap-4 h-full">
+                <h2 class="font-orbitron text-xl font-bold">Mining Console</h2>
+                <div id="mining-console-container" class="relative">
+                    <div id="mining-console">
+                        <svg class="w-24 h-24 text-cyan-300 animate-pulse" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                                d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3m0 18a9 9 0 00-9-9m9 9a9 9 0 009-9M3 12a9 9 0 019-9m-9 9a9 9 0 019 9m-9-9h18m-9 9V3">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <p>Cores/Click: <span id="cpc-display" class="font-bold">1</span></p>
+                    <p>Cores/Second: <span id="cps-display" class="font-bold">0</span></p>
+                </div>
+                <button id="sell-cores-btn" class="cyber-button w-full py-3 rounded-lg font-bold">Sell Cores for
+                    Creds</button>
+                <div class="w-full">
+                    <p class="text-xs text-center text-cyan-400 mb-1">Cores to Sell: <span
+                            id="sell-value-display">0</span> Creds</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Column: Upgrades -->
+        <div class="col-span-1 lg:col-span-1 flex flex-col gap-4">
+            <div class="cyber-panel p-4 rounded-lg h-full">
+                <h2 class="font-orbitron text-xl font-bold text-center mb-4">Upgrades</h2>
+                <div class="space-y-3">
+                    <!-- Click Power Upgrade -->
+                    <div class="tooltip">
+                        <button id="upgrade-click-btn" class="cyber-button w-full p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span>Boost Click Power</span>
+                                <span id="upgrade-click-cost" class="font-orbitron">10 Creds</span>
+                            </div>
+                        </button>
+                        <span class="tooltiptext">Increases the number of Data Cores you generate per manual
+                            click.</span>
+                    </div>
+
+                    <!-- Buy Mining Bot -->
+                    <div class="tooltip">
+                        <button id="buy-bot-btn" class="cyber-button w-full p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span>Buy Mining Bot (<span id="bot-count">0</span>)</span>
+                                <span id="buy-bot-cost" class="font-orbitron">50 Creds</span>
+                            </div>
+                        </button>
+                        <span class="tooltiptext">Purchase an autonomous bot that automatically mines Data Cores for
+                            you.</span>
+                    </div>
+
+                    <!-- Bot Speed Upgrade -->
+                    <div class="tooltip">
+                        <button id="upgrade-bot-speed-btn" class="cyber-button w-full p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span>Upgrade Bot Speed (Lvl <span id="bot-speed-level">1</span>)</span>
+                                <span id="upgrade-bot-speed-cost" class="font-orbitron">100 Creds</span>
+                            </div>
+                        </button>
+                        <span class="tooltiptext">Increases the mining speed (clicks per second) of all your
+                            bots.</span>
+                    </div>
+
+                    <!-- Bot Efficiency Upgrade -->
+                    <div class="tooltip">
+                        <button id="upgrade-bot-efficiency-btn" class="cyber-button w-full p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span>Upgrade Bot Efficiency (Lvl <span id="bot-efficiency-level">1</span>)</span>
+                                <span id="upgrade-bot-efficiency-cost" class="font-orbitron">150 Creds</span>
+                            </div>
+                        </button>
+                        <span class="tooltiptext">Increases the number of Data Cores each bot generates per
+                            "click".</span>
+                    </div>
+
+                    <!-- Buy Extraction Rig -->
+                    <div class="tooltip">
+                        <button id="buy-rig-btn" class="cyber-button w-full p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span>Buy Extraction Rig (<span id="rig-count">0</span>)</span>
+                                <span id="buy-rig-cost" class="font-orbitron">1000 Creds</span>
+                            </div>
+                        </button>
+                        <span class="tooltiptext">Purchase a rig that generates passive Creds per second, even offline
+                            (feature simulated).</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Black Market -->
+        <div class="col-span-1 lg:col-span-1 flex flex-col gap-4">
+            <div class="cyber-panel p-4 rounded-lg h-full">
+                <h2 class="font-orbitron text-xl font-bold text-center mb-4 text-red-400"
+                    style="--secondary-glow: #ff00ff; text-shadow: 0 0 10px var(--secondary-glow);">Black Market</h2>
+                <div class="space-y-3">
+                    <!-- Overclock Protocol -->
+                    <div class="tooltip">
+                        <button id="overclock-btn" class="cyber-button secondary w-full p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span id="overclock-text">Overclock Protocol</span>
+                                <span id="overclock-cost">250 Creds</span>
+                            </div>
+                        </button>
+                        <span class="tooltiptext">Boost all Core generation by 5x for 30 seconds. WARNING: Small chance
+                            of a System Meltdown, losing a portion of gains.</span>
+                    </div>
+
+                    <!-- Data Drop -->
+                    <div class="tooltip">
+                        <button id="data-drop-btn" class="cyber-button secondary w-full p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span>Encrypted Data Drop</span>
+                                <span id="data-drop-cost">500 Creds</span>
+                            </div>
+                        </button>
+                        <span class="tooltiptext">Purchase a loot box with a random reward. Could be Creds, could be
+                            something... better.</span>
+                    </div>
+
+                    <!-- Market Speculation -->
+                    <div class="cyber-panel p-3 rounded-lg mt-4 border border-red-500/50">
+                        <h3 class="font-orbitron text-center mb-2">Market Speculation</h3>
+                        <p class="text-xs text-center mb-2">Will the Core market price rise or fall in 15s?</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs">Bet:</span>
+                            <input id="speculation-bet" type="number" value="100"
+                                class="bg-black/50 border border-red-500/50 rounded px-2 py-1 w-full text-right font-orbitron">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="speculate-up-btn" class="cyber-button secondary w-full p-2 rounded-lg text-sm">▲
+                                Price Up</button>
+                            <button id="speculate-down-btn"
+                                class="cyber-button secondary w-full p-2 rounded-lg text-sm">▼ Price Down</button>
+                        </div>
+                        <p id="speculation-status" class="text-center text-xs mt-2 h-4"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Data Drop and other notifications -->
+    <div id="modal" class="modal-overlay hidden">
+        <div class="cyber-panel p-8 rounded-lg text-center max-w-sm w-full mx-4">
+            <h3 id="modal-title" class="font-orbitron text-2xl mb-4"></h3>
+            <p id="modal-body" class="mb-6"></p>
+            <button id="modal-close-btn" class="cyber-button px-8 py-2 rounded-lg">Acknowledge</button>
+        </div>
+    </div>
+
+
+    <script>
+        // --- DOM ELEMENTS ---
+        const credsDisplay = document.getElementById('creds-display');
+        const coresDisplay = document.getElementById('cores-display');
+        const cpcDisplay = document.getElementById('cpc-display');
+        const cpsDisplay = document.getElementById('cps-display');
+        const sellValueDisplay = document.getElementById('sell-value-display');
+        const miningConsole = document.getElementById('mining-console');
+        const miningConsoleContainer = document.getElementById('mining-console-container');
+
+        // Buttons
+        const sellCoresBtn = document.getElementById('sell-cores-btn');
+        const upgradeClickBtn = document.getElementById('upgrade-click-btn');
+        const buyBotBtn = document.getElementById('buy-bot-btn');
+        const upgradeBotSpeedBtn = document.getElementById('upgrade-bot-speed-btn');
+        const upgradeBotEfficiencyBtn = document.getElementById('upgrade-bot-efficiency-btn');
+        const buyRigBtn = document.getElementById('buy-rig-btn');
+        const overclockBtn = document.getElementById('overclock-btn');
+        const dataDropBtn = document.getElementById('data-drop-btn');
+        const speculateUpBtn = document.getElementById('speculate-up-btn');
+        const speculateDownBtn = document.getElementById('speculate-down-btn');
+
+        // Upgrade Costs & Levels
+        const upgradeClickCost = document.getElementById('upgrade-click-cost');
+        const botCount = document.getElementById('bot-count');
+        const buyBotCost = document.getElementById('buy-bot-cost');
+        const botSpeedLevel = document.getElementById('bot-speed-level');
+        const upgradeBotSpeedCost = document.getElementById('upgrade-bot-speed-cost');
+        const botEfficiencyLevel = document.getElementById('bot-efficiency-level');
+        const upgradeBotEfficiencyCost = document.getElementById('upgrade-bot-efficiency-cost');
+        const rigCount = document.getElementById('rig-count');
+        const buyRigCost = document.getElementById('buy-rig-cost');
+        const overclockCost = document.getElementById('overclock-cost');
+        const overclockText = document.getElementById('overclock-text');
+        const dataDropCost = document.getElementById('data-drop-cost');
+        const speculationBet = document.getElementById('speculation-bet');
+        const speculationStatus = document.getElementById('speculation-status');
+
+        // Modal
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+
+        // --- GAME STATE ---
+        let gameState = {
+            creds: 0,
+            dataCores: 0,
+            coresPerClick: 1,
+            bots: {
+                count: 0,
+                speedLevel: 1,      // Determines clicks per second
+                efficiencyLevel: 1, // Determines cores per click
+            },
+            rigs: {
+                count: 0,
+            },
+            upgrades: {
+                click: { cost: 10 },
+                bot: { cost: 50 },
+                botSpeed: { cost: 100 },
+                botEfficiency: { cost: 150 },
+                rig: { cost: 1000 },
+            },
+            blackMarket: {
+                overclock: { cost: 250, isActive: false, duration: 30000, timeLeft: 0, credsEarned: 0 },
+                dataDrop: { cost: 500 },
+                speculation: { isActive: false },
+            },
+            stats: {
+                coresPerSecond: 0,
+            }
+        };
+
+        const CORE_TO_CREDS_RATE = 0.5;
+
+        // --- GAME LOGIC ---
+
+        // Function to format large numbers
+        function formatNumber(num) {
+            if (num < 1000) return num.toFixed(0);
+            if (num < 1000000) return (num / 1000).toFixed(2) + 'K';
+            if (num < 1000000000) return (num / 1000000).toFixed(2) + 'M';
+            return (num / 1000000000).toFixed(2) + 'B';
+        }
+
+        // Main UI Update Function
+        function updateUI() {
+            credsDisplay.textContent = formatNumber(gameState.creds);
+            coresDisplay.textContent = formatNumber(gameState.dataCores);
+            cpcDisplay.textContent = formatNumber(gameState.coresPerClick * (gameState.blackMarket.overclock.isActive ? 5 : 1));
+            cpsDisplay.textContent = formatNumber(gameState.stats.coresPerSecond * (gameState.blackMarket.overclock.isActive ? 5 : 1));
+
+            sellValueDisplay.textContent = formatNumber(gameState.dataCores * CORE_TO_CREDS_RATE);
+
+            // Upgrade Costs
+            upgradeClickCost.textContent = `${formatNumber(gameState.upgrades.click.cost)} Creds`;
+            botCount.textContent = gameState.bots.count;
+            buyBotCost.textContent = `${formatNumber(gameState.upgrades.bot.cost)} Creds`;
+            botSpeedLevel.textContent = gameState.bots.speedLevel;
+            upgradeBotSpeedCost.textContent = `${formatNumber(gameState.upgrades.botSpeed.cost)} Creds`;
+            botEfficiencyLevel.textContent = gameState.bots.efficiencyLevel;
+            upgradeBotEfficiencyCost.textContent = `${formatNumber(gameState.upgrades.botEfficiency.cost)} Creds`;
+            rigCount.textContent = gameState.rigs.count;
+            buyRigCost.textContent = `${formatNumber(gameState.upgrades.rig.cost)} Creds`;
+
+            // Black Market Costs
+            overclockCost.textContent = `${formatNumber(gameState.blackMarket.overclock.cost)} Creds`;
+            dataDropCost.textContent = `${formatNumber(gameState.blackMarket.dataDrop.cost)} Creds`;
+
+
+            // Button States
+            upgradeClickBtn.disabled = gameState.creds < gameState.upgrades.click.cost;
+            buyBotBtn.disabled = gameState.creds < gameState.upgrades.bot.cost;
+            upgradeBotSpeedBtn.disabled = gameState.creds < gameState.upgrades.botSpeed.cost || gameState.bots.count === 0;
+            upgradeBotEfficiencyBtn.disabled = gameState.creds < gameState.upgrades.botEfficiency.cost || gameState.bots.count === 0;
+            buyRigBtn.disabled = gameState.creds < gameState.upgrades.rig.cost;
+
+            overclockBtn.disabled = gameState.creds < gameState.blackMarket.overclock.cost || gameState.blackMarket.overclock.isActive;
+            dataDropBtn.disabled = gameState.creds < gameState.blackMarket.dataDrop.cost;
+
+            const betAmount = parseFloat(speculationBet.value) || 0;
+            speculateUpBtn.disabled = gameState.creds < betAmount || betAmount <= 0 || gameState.blackMarket.speculation.isActive;
+            speculateDownBtn.disabled = gameState.creds < betAmount || betAmount <= 0 || gameState.blackMarket.speculation.isActive;
+        }
+
+        // Calculate Cores Per Second
+        function calculateCPS() {
+            const botBaseSpeed = 0.5; // clicks per second
+            const botSpeedMultiplier = 1 + (gameState.bots.speedLevel - 1) * 0.2;
+            const botEfficiency = 1 + (gameState.bots.efficiencyLevel - 1);
+
+            const totalBotClicksPerSecond = gameState.bots.count * botBaseSpeed * botSpeedMultiplier;
+            gameState.stats.coresPerSecond = totalBotClicksPerSecond * botEfficiency;
+        }
+
+        // Manual Mining Click
+        miningConsole.addEventListener('click', (event) => {
+            const amount = gameState.coresPerClick * (gameState.blackMarket.overclock.isActive ? 5 : 1);
+            gameState.dataCores += amount;
+
+            if (gameState.blackMarket.overclock.isActive) {
+                gameState.blackMarket.overclock.credsEarned += (amount * CORE_TO_CREDS_RATE);
+            }
+
+            // Visual feedback
+            const feedback = document.createElement('div');
+            feedback.className = 'click-feedback font-orbitron';
+            feedback.textContent = `+${formatNumber(amount)}`;
+            miningConsoleContainer.appendChild(feedback);
+            setTimeout(() => feedback.remove(), 1000);
+
+            updateUI();
+        });
+
+        // Sell Cores
+        sellCoresBtn.addEventListener('click', () => {
+            const credsEarned = gameState.dataCores * CORE_TO_CREDS_RATE;
+            gameState.creds += credsEarned;
+            gameState.dataCores = 0;
+            updateUI();
+        });
+
+        // Upgrade Handlers
+        upgradeClickBtn.addEventListener('click', () => {
+            if (gameState.creds >= gameState.upgrades.click.cost) {
+                gameState.creds -= gameState.upgrades.click.cost;
+                gameState.coresPerClick += 1;
+                gameState.upgrades.click.cost = Math.ceil(gameState.upgrades.click.cost * 1.15);
+                updateUI();
+            }
+        });
+
+        buyBotBtn.addEventListener('click', () => {
+            if (gameState.creds >= gameState.upgrades.bot.cost) {
+                gameState.creds -= gameState.upgrades.bot.cost;
+                gameState.bots.count++;
+                gameState.upgrades.bot.cost = Math.ceil(gameState.upgrades.bot.cost * 1.25);
+                calculateCPS();
+                updateUI();
+            }
+        });
+
+        upgradeBotSpeedBtn.addEventListener('click', () => {
+            if (gameState.creds >= gameState.upgrades.botSpeed.cost) {
+                gameState.creds -= gameState.upgrades.botSpeed.cost;
+                gameState.bots.speedLevel++;
+                gameState.upgrades.botSpeed.cost = Math.ceil(gameState.upgrades.botSpeed.cost * 1.5);
+                calculateCPS();
+                updateUI();
+            }
+        });
+
+        upgradeBotEfficiencyBtn.addEventListener('click', () => {
+            if (gameState.creds >= gameState.upgrades.botEfficiency.cost) {
+                gameState.creds -= gameState.upgrades.botEfficiency.cost;
+                gameState.bots.efficiencyLevel++;
+                gameState.upgrades.botEfficiency.cost = Math.ceil(gameState.upgrades.botEfficiency.cost * 1.6);
+                calculateCPS();
+                updateUI();
+            }
+        });
+
+        buyRigBtn.addEventListener('click', () => {
+            if (gameState.creds >= gameState.upgrades.rig.cost) {
+                gameState.creds -= gameState.upgrades.rig.cost;
+                gameState.rigs.count++;
+                gameState.upgrades.rig.cost = Math.ceil(gameState.upgrades.rig.cost * 2);
+                updateUI();
+            }
+        });
+
+        // --- Black Market Handlers ---
+
+        overclockBtn.addEventListener('click', () => {
+            if (gameState.creds >= gameState.blackMarket.overclock.cost && !gameState.blackMarket.overclock.isActive) {
+                gameState.creds -= gameState.blackMarket.overclock.cost;
+                gameState.blackMarket.overclock.isActive = true;
+                gameState.blackMarket.overclock.timeLeft = gameState.blackMarket.overclock.duration;
+                gameState.blackMarket.overclock.credsEarned = 0;
+
+                const interval = setInterval(() => {
+                    gameState.blackMarket.overclock.timeLeft -= 1000;
+                    overclockText.textContent = `OVERCLOCKED (${(gameState.blackMarket.overclock.timeLeft / 1000).toFixed(0)}s)`;
+
+                    // Meltdown check (1% chance per second)
+                    if (Math.random() < 0.01) {
+                        clearInterval(interval);
+                        const penalty = gameState.blackMarket.overclock.credsEarned * 0.75; // Lose 75% of overclock earnings
+                        gameState.creds -= penalty;
+                        if (gameState.creds < 0) gameState.creds = 0;
+
+                        gameState.blackMarket.overclock.isActive = false;
+                        overclockText.textContent = 'Overclock Protocol';
+                        showModal('SYSTEM MELTDOWN!', `A power surge fried your circuits! You lost ${formatNumber(penalty)} Creds from the overclock period.`);
+                        updateUI();
+                        return;
+                    }
+
+                    if (gameState.blackMarket.overclock.timeLeft <= 0) {
+                        clearInterval(interval);
+                        gameState.blackMarket.overclock.isActive = false;
+                        overclockText.textContent = 'Overclock Protocol';
+                        showModal('Overclock Complete', `Your systems have stabilized. You gained an extra ${formatNumber(gameState.blackMarket.overclock.credsEarned)} Creds during the boost.`);
+                        updateUI();
+                    }
+                }, 1000);
+            }
+            updateUI();
+        });
+
+        dataDropBtn.addEventListener('click', () => {
+            if (gameState.creds >= gameState.blackMarket.dataDrop.cost) {
+                gameState.creds -= gameState.blackMarket.dataDrop.cost;
+
+                const lootTable = [
+                    { type: 'creds', min: 250, max: 750, weight: 60, rarity: 'Common' }, // Common
+                    { type: 'creds', min: 1000, max: 2500, weight: 25, rarity: 'Uncommon' }, // Uncommon
+                    { type: 'cores', min: 5000, max: 10000, weight: 10, rarity: 'Rare' }, // Rare
+                    { type: 'bot', amount: 1, weight: 4, rarity: 'Rare' }, // Rare
+                    { type: 'rig', amount: 1, weight: 1, rarity: 'Legendary' }, // Legendary
+                ];
+
+                const totalWeight = lootTable.reduce((sum, item) => sum + item.weight, 0);
+                let random = Math.random() * totalWeight;
+                let reward;
+
+                for (const item of lootTable) {
+                    if (random < item.weight) {
+                        reward = item;
+                        break;
+                    }
+                    random -= item.weight;
+                }
+
+                let rewardTitle = `[${reward.rarity}] Data Drop!`;
+                let rewardBody = '';
+
+                switch (reward.type) {
+                    case 'creds':
+                        const credsWon = Math.floor(Math.random() * (reward.max - reward.min + 1)) + reward.min;
+                        gameState.creds += credsWon;
+                        rewardBody = `You found a hidden stash of ${formatNumber(credsWon)} Creds!`;
+                        break;
+                    case 'cores':
+                        const coresWon = Math.floor(Math.random() * (reward.max - reward.min + 1)) + reward.min;
+                        gameState.dataCores += coresWon;
+                        rewardBody = `You intercepted a raw data packet containing ${formatNumber(coresWon)} Data Cores!`;
+                        break;
+                    case 'bot':
+                        gameState.bots.count += reward.amount;
+                        rewardBody = `You found the schematics for a new Mining Bot! Unit count increased.`;
+                        calculateCPS();
+                        break;
+                    case 'rig':
+                        gameState.rigs.count += reward.amount;
+                        rewardBody = `You hijacked a corporate Extraction Rig! Passive income increased.`;
+                        break;
+                }
+                showModal(rewardTitle, rewardBody);
+                updateUI();
+            }
+        });
+
+        function handleSpeculation(playerGuess) {
+            const betAmount = parseFloat(speculationBet.value);
+            if (gameState.creds >= betAmount && betAmount > 0 && !gameState.blackMarket.speculation.isActive) {
+                gameState.creds -= betAmount;
+                gameState.blackMarket.speculation.isActive = true;
+                speculationStatus.textContent = 'Market fluctuating...';
+                updateUI();
+
+                setTimeout(() => {
+                    const outcome = Math.random() > 0.5 ? 'up' : 'down'; // 50/50 chance
+                    if (outcome === playerGuess) {
+                        gameState.creds += betAmount * 2;
+                        speculationStatus.textContent = `Correct! You won ${formatNumber(betAmount * 2)} Creds.`;
+                    } else {
+                        speculationStatus.textContent = `Wrong! You lost ${formatNumber(betAmount)} Creds.`;
+                    }
+                    gameState.blackMarket.speculation.isActive = false;
+                    updateUI();
+                }, 15000);
+            }
+        }
+        speculateUpBtn.addEventListener('click', () => handleSpeculation('up'));
+        speculateDownBtn.addEventListener('click', () => handleSpeculation('down'));
+
+        // Modal logic
+        function showModal(title, body) {
+            modalTitle.textContent = title;
+            modalBody.textContent = body;
+            modal.classList.remove('hidden');
+        }
+        modalCloseBtn.addEventListener('click', () => modal.classList.add('hidden'));
+
+        // --- GAME LOOP ---
+        function gameLoop() {
+            const coresFromBots = gameState.stats.coresPerSecond;
+            const credsFromRigs = gameState.rigs.count * 5; // Each rig gives 5 creds/sec
+
+            const multiplier = gameState.blackMarket.overclock.isActive ? 5 : 1;
+
+            gameState.dataCores += coresFromBots * multiplier;
+            gameState.creds += credsFromRigs;
+
+            if (gameState.blackMarket.overclock.isActive) {
+                gameState.blackMarket.overclock.credsEarned += (coresFromBots * multiplier * CORE_TO_CREDS_RATE);
+            }
+
+            updateUI();
+        }
+
+        // --- PERSISTENCE ---
+        function saveGame() {
+            localStorage.setItem('credsAndCoresSave', JSON.stringify(gameState));
+        }
+
+        function loadGame() {
+            const savedGame = localStorage.getItem('credsAndCoresSave');
+            if (savedGame) {
+                gameState = JSON.parse(savedGame);
+                // Reset active states on load
+                if (gameState.blackMarket.overclock) gameState.blackMarket.overclock.isActive = false;
+                if (gameState.blackMarket.speculation) gameState.blackMarket.speculation.isActive = false;
+            }
+        }
+
+        // --- INITIALIZATION ---
+        function init() {
+            loadGame();
+            calculateCPS();
+            setInterval(gameLoop, 1000);
+            setInterval(saveGame, 15000); // Save every 15 seconds
+            updateUI();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>
