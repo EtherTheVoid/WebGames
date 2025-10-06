@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Drifter Bets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0d0221;
+            color: #00f0ff;
+            text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff;
+            overflow: auto;
+        }
+        canvas {
+            background-color: #1a0441;
+            border: 3px solid #ff00ff;
+            box-shadow: 0 0 20px #ff00ff, 0 0 30px #00f0ff inset;
+            cursor: none;
+        }
+        .neon-button {
+            background-color: transparent;
+            border: 2px solid #00f0ff;
+            color: #00f0ff;
+            padding: 10px 20px;
+            text-shadow: 0 0 5px #00f0ff, 0 0 10px #00f0ff;
+            box-shadow: 0 0 10px #00f0ff, 0 0 15px #00f0ff inset;
+            transition: all 0.2s ease;
+            image-rendering: pixelated;
+        }
+        .neon-button:hover, .neon-button.active {
+            background-color: #00f0ff;
+            color: #0d0221;
+            box-shadow: 0 0 20px #00f0ff, 0 0 30px #00f0ff;
+            text-shadow: none;
+        }
+        .neon-button:disabled {
+            border-color: #4f5a63;
+            color: #4f5a63;
+            text-shadow: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .modal {
+            background-color: rgba(13, 2, 33, 0.9);
+            border: 3px solid #ff00ff;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+        .hud-item {
+            background-color: rgba(26, 4, 65, 0.7);
+            padding: 8px 16px;
+            border: 2px solid #00f0ff;
+            box-shadow: 0 0 10px #00f0ff inset;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Game Title and HUD -->
+    <div id="game-ui-top" class="w-full max-w-4xl text-center mb-4">
+        <h1 class="text-4xl md:text-5xl mb-4" style="text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 30px #f0f;">Neon Drifter Bets</h1>
+        <div class="flex justify-between items-center text-sm md:text-lg">
+            <div class="hud-item">Creds: <span id="creds-display">0</span></div>
+            <div class="hud-item">High Score: <span id="high-score-display">0</span></div>
+            <div class="hud-item">Score: <span id="score-display">0</span></div>
+            <div class="hud-item">Hits: <span id="hits-display">3/3</span></div>
+        </div>
+    </div>
+
+    <!-- Game Canvas -->
+    <div id="canvas-container" class="flex-grow w-full max-w-4xl flex items-center justify-center">
+        <canvas id="gameCanvas" width="800" height="600" class=""></canvas>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="absolute inset-0 bg-black bg-opacity-75 flex-col items-center justify-center hidden text-center">
+        <h2 class="text-6xl text-red-500" style="text-shadow: 0 0 10px #f00, 0 0 20px #f00;">// WRECKED //</h2>
+        <p class="text-2xl mt-4">Final Score: <span id="final-score">0</span></p>
+        <div id="bet-results-container" class="mt-4 text-xl"></div>
+        <button id="retry-button" class="neon-button mt-8 text-2xl">Retry</button>
+    </div>
+
+    <!-- Start Screen / Bets -->
+    <div id="start-screen" class="absolute inset-0 bg-black bg-opacity-75 flex flex-col items-center justify-center p-4">
+        <div class="modal w-full max-w-2xl p-6 text-center">
+            <h2 class="text-3xl mb-4">// PLACE YOUR BETS //</h2>
+            <div id="bets-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Bets will be dynamically inserted here -->
+            </div>
+            <div class="flex justify-center gap-4">
+                <button id="shop-button" class="neon-button text-xl">Bazaar</button>
+                <button id="start-button" class="neon-button text-xl">Drift!</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- In-Run Gamble Pop-up -->
+    <div id="in-run-gamble" class="absolute inset-0 bg-black bg-opacity-50 flex-col items-center justify-center p-4 hidden">
+        <div class="modal w-full max-w-md p-6 text-center animate-pulse">
+            <h3 class="text-2xl mb-4" id="gamble-title"></h3>
+            <p class="mb-6" id="gamble-description"></p>
+            <div class="flex justify-center gap-4">
+                <button id="accept-gamble" class="neon-button">Accept</button>
+                <button id="decline-gamble" class="neon-button">Decline</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div id="shop-modal" class="absolute inset-0 bg-black bg-opacity-75 flex-col items-center justify-center p-4 hidden">
+        <div class="modal w-full max-w-2xl p-6">
+            <h2 class="text-3xl mb-6 text-center">// THE FIXER'S BAZAAR //</h2>
+            <div class="mb-6 text-center">
+                <h3 class="text-xl mb-4">Bike Chassis</h3>
+                <div id="bike-cosmetics" class="flex justify-center gap-4"></div>
+            </div>
+            <div class="mb-6 text-center">
+                 <h3 class="text-xl mb-4">Neon Trail</h3>
+                 <div id="trail-cosmetics" class="flex justify-center gap-4"></div>
+            </div>
+            <div class="text-center">
+                <button id="close-shop" class="neon-button text-xl">Close</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- DOM Elements ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const credsDisplay = document.getElementById('creds-display');
+    const highScoreDisplay = document.getElementById('high-score-display');
+    const scoreDisplay = document.getElementById('score-display');
+    const hitsDisplay = document.getElementById('hits-display');
+    
+    const startScreen = document.getElementById('start-screen');
+    const startButton = document.getElementById('start-button');
+    const shopButton = document.getElementById('shop-button');
+
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const finalScore = document.getElementById('final-score');
+    const retryButton = document.getElementById('retry-button');
+    const betResultsContainer = document.getElementById('bet-results-container');
+
+    const inRunGambleScreen = document.getElementById('in-run-gamble');
+    const gambleTitle = document.getElementById('gamble-title');
+    const gambleDescription = document.getElementById('gamble-description');
+    const acceptGambleButton = document.getElementById('accept-gamble');
+    const declineGambleButton = document.getElementById('decline-gamble');
+    
+    const shopModal = document.getElementById('shop-modal');
+    const closeShopButton = document.getElementById('close-shop');
+    const bikeCosmeticsContainer = document.getElementById('bike-cosmetics');
+    const trailCosmeticsContainer = document.getElementById('trail-cosmetics');
+
+    // --- Game Configuration ---
+    let LANE_WIDTH, LANES;
+    const ROAD_COLOR = '#2c085e';
+    const LINE_COLOR = '#ff00ff';
+    const STAR_COUNT = 200;
+
+    // --- Game State ---
+    let score = 0;
+    let highScore = 0;
+    let creds = 0;
+    let distance = 0;
+    let gameSpeed = 5;
+    let isGameOver = false;
+    let animationFrameId;
+    let keys = {};
+    let stars = [];
+    let entities = []; // Obstacles, collectibles, power-ups
+    let hits = 0;
+    const MAX_HITS = 3;
+    let isPaused = false;
+    let currentActiveBet = null;
+    let currentActiveGamble = null;
+    let collectiblesThisRun = 0;
+    let powerupsUsedThisRun = {};
+    
+    // --- Player State ---
+    const player = {
+        x: 0,
+        y: 0,
+        width: 40,
+        height: 50,
+        lane: 1,
+        speed: 10,
+        isBoosting: false,
+        boostFuel: 100,
+        shielded: false,
+        magnetized: false,
+        cosmetics: {
+            color: '#00f0ff',
+            trailColor: '#ff00ff',
+        },
+        trail: []
+    };
+
+    // --- Bet Definitions ---
+    const BETS = [
+        { id: 'dist1', text: 'Reach 1000m', bet: 50, win: 150, condition: () => distance >= 1000 },
+        { id: 'dist2', text: 'Reach 2500m', bet: 100, win: 350, condition: () => distance >= 2500 },
+        { id: 'nohit', text: 'No Hits Run', bet: 75, win: 200, condition: () => hits === 0 },
+        { id: 'collect1', text: 'Collect 15 Chips', bet: 40, win: 100, condition: () => collectiblesThisRun >= 15 },
+        { id: 'collect2', text: 'Collect 30 Chips', bet: 80, win: 220, condition: () => collectiblesThisRun >= 30 },
+        { id: 'boost1', text: 'Use Boost 3 times', bet: 60, win: 175, condition: () => (powerupsUsedThisRun['Speed Boost'] || 0) >= 3 },
+    ];
+
+    // --- In-Run Gamble Definitions ---
+    const GAMBLES = [
+        { 
+            id: 'speed_zone', 
+            title: 'High-Speed Zone!',
+            description: (b, w) => `Bet ${b} Creds to survive the next 500m at double speed. Win ${w}!`,
+            bet: 20, win: 70,
+            duration: 500, // in meters
+            startEffect: () => gameSpeed *= 2,
+            endEffect: () => gameSpeed /= 2,
+            failCondition: () => false // Fail is determined by getting hit during the gamble
+        },
+        {
+            id: 'gauntlet',
+            title: 'Obstacle Gauntlet!',
+            description: (b, w) => `Bet ${b} Creds to pass the next 3 obstacles without getting hit. Win ${w}!`,
+            bet: 30, win: 90,
+            duration: 3, // in obstacles
+            startEffect: () => { /* Logic handled in spawn logic */ },
+            endEffect: () => {},
+            failCondition: () => false
+        }
+    ];
+    
+    // --- Cosmetic Definitions ---
+    const COSMETICS = {
+        bike: [
+            { id: 'default_bike', name: 'Default', cost: 0, value: '#00f0ff' },
+            { id: 'pink_bike', name: 'Hot Pink', cost: 200, value: '#ff00ff' },
+            { id: 'green_bike', name: 'Lime', cost: 200, value: '#00ff00' },
+            { id: 'gold_bike', name: 'Gold', cost: 1000, value: '#ffd700' },
+        ],
+        trail: [
+            { id: 'default_trail', name: 'Default', cost: 0, value: '#ff00ff' },
+            { id: 'blue_trail', name: 'Cyan', cost: 150, value: '#00f0ff' },
+            { id: 'green_trail', name: 'Green', cost: 150, value: '#00ff00' },
+            { id: 'white_trail', name: 'White', cost: 500, value: '#ffffff' },
+        ]
+    };
+    let unlockedCosmetics = {};
+
+    // --- Local Storage Management ---
+    function saveData() {
+        localStorage.setItem('neonDrifterBets', JSON.stringify({
+            highScore,
+            creds,
+            unlockedCosmetics
+        }));
+    }
+
+    function loadData() {
+        const data = JSON.parse(localStorage.getItem('neonDrifterBets'));
+        if (data) {
+            highScore = data.highScore || 0;
+            creds = data.creds !== undefined ? data.creds : 500; // Start with 500 creds
+            unlockedCosmetics = data.unlockedCosmetics || {};
+        } else {
+            creds = 500; // First time playing
+        }
+        
+        // Ensure default cosmetics are unlocked
+        unlockedCosmetics['default_bike'] = true;
+        unlockedCosmetics['default_trail'] = true;
+        
+        player.cosmetics.color = (localStorage.getItem('selectedBike') || COSMETICS.bike[0].value);
+        player.cosmetics.trailColor = (localStorage.getItem('selectedTrail') || COSMETICS.trail[0].value);
+    }
+    
+    // --- Utility Functions ---
+    function resizeCanvas() {
+        const container = document.getElementById('canvas-container');
+        const aspectRatio = 4 / 3;
+
+        const availableWidth = container.clientWidth;
+        const availableHeight = container.clientHeight;
+
+        let newWidth;
+        let newHeight;
+
+        if (availableWidth / availableHeight > aspectRatio) {
+            newHeight = availableHeight;
+            newWidth = newHeight * aspectRatio;
+        } else {
+            newWidth = availableWidth;
+            newHeight = newWidth / aspectRatio;
+        }
+
+        canvas.style.width = `${newWidth}px`;
+        canvas.style.height = `${newHeight}px`;
+
+        canvas.width = 800; // Keep internal resolution fixed
+        canvas.height = 600;
+
+        LANE_WIDTH = canvas.width / 5;
+        LANES = [
+            canvas.width / 2 - LANE_WIDTH,
+            canvas.width / 2,
+            canvas.width / 2 + LANE_WIDTH,
+        ];
+        
+        player.x = LANES[player.lane];
+        player.y = canvas.height - player.height - 20;
+
+        // Re-initialize stars for new size
+        stars = [];
+        for (let i = 0; i < STAR_COUNT; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 1,
+                speed: Math.random() * 2 + 1,
+            });
+        }
+    }
+
+    function random(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    // --- Entity Creation ---
+    function spawnEntity() {
+        const typeChance = Math.random();
+        const lane = Math.floor(Math.random() * 3);
+        const x = LANES[lane];
+        let entity = {
+            x: x,
+            y: -50,
+            width: 40,
+            height: 40,
+            type: '',
+            color: ''
+        };
+
+        if (currentActiveGamble && currentActiveGamble.id === 'gauntlet' && currentActiveGamble.obstaclesToPass > 0) {
+            entity.type = 'obstacle';
+            entity.color = '#ff4d4d'; // Red for obstacle
+            entity.isGambleObstacle = true;
+            currentActiveGamble.obstaclesToPass--;
+        } else if (typeChance < 0.6) { // 60% chance for obstacle
+            entity.type = 'obstacle';
+            entity.color = '#ff4d4d'; // Red for obstacle
+        } else if (typeChance < 0.9) { // 30% chance for collectible
+            entity.type = 'collectible';
+            entity.color = '#ffd700'; // Yellow for collectible
+            entity.width = 20;
+            entity.height = 20;
+        } else { // 10% chance for power-up
+            entity.type = 'powerup';
+            const powerups = ['Speed Boost', 'Shield', 'Magnet'];
+            entity.powerupType = powerups[Math.floor(Math.random() * powerups.length)];
+            
+            if(entity.powerupType === 'Speed Boost') entity.color = '#00ff00'; // Green
+            if(entity.powerupType === 'Shield') entity.color = '#00ffff'; // Cyan
+            if(entity.powerupType === 'Magnet') entity.color = '#ff00ff'; // Magenta
+        }
+        
+        // Prevent immediate overlap
+        let overlap = entities.some(e => e.y < 50 && e.lane === lane);
+        if(!overlap) {
+            entities.push(entity);
+        }
+    }
+
+    // --- Collision Detection ---
+    function checkCollisions() {
+        entities.forEach((entity, index) => {
+            if (
+                player.x < entity.x + entity.width &&
+                player.x + player.width > entity.x &&
+                player.y < entity.y + entity.height &&
+                player.y + player.height > entity.y
+            ) {
+                handleCollision(entity, index);
+            }
+        });
+    }
+
+    function handleCollision(entity, index) {
+        switch (entity.type) {
+            case 'obstacle':
+                if (player.shielded) {
+                    player.shielded = false;
+                } else {
+                    hits++;
+                    score = Math.max(0, score - 50); // Deduct points
+                    if (currentActiveGamble) {
+                       failGamble();
+                    }
+                    if (hits >= MAX_HITS) {
+                        endGame();
+                    }
+                }
+                break;
+            case 'collectible':
+                score += 100;
+                creds++;
+                collectiblesThisRun++;
+                break;
+            case 'powerup':
+                 if (!powerupsUsedThisRun[entity.powerupType]) {
+                    powerupsUsedThisRun[entity.powerupType] = 0;
+                 }
+                 powerupsUsedThisRun[entity.powerupType]++;
+                activatePowerup(entity.powerupType);
+                break;
+        }
+        entities.splice(index, 1);
+    }
+
+    function activatePowerup(type) {
+        switch (type) {
+            case 'Speed Boost':
+                gameSpeed += 3;
+                setTimeout(() => gameSpeed = Math.max(5, gameSpeed - 3), 5000);
+                break;
+            case 'Shield':
+                player.shielded = true;
+                setTimeout(() => player.shielded = false, 8000);
+                break;
+            case 'Magnet':
+                player.magnetized = true;
+                setTimeout(() => player.magnetized = false, 10000);
+                break;
+        }
+    }
+    
+    // --- Update Functions ---
+    function updatePlayer() {
+        // Lane switching
+        // Handled in event listener to be more responsive
+        
+        // Boost
+        if (keys[' '] && player.boostFuel > 0) {
+            player.isBoosting = true;
+            gameSpeed = 15;
+            player.boostFuel -= 1;
+        } else {
+            player.isBoosting = false;
+            if (!currentActiveGamble || currentActiveGamble.id !== 'speed_zone') {
+               gameSpeed = 5 + Math.floor(distance / 1000); // Gradually increase speed with distance
+            }
+        }
+        
+        // Regenerate boost fuel
+        if (!player.isBoosting && player.boostFuel < 100) {
+            player.boostFuel += 0.2;
+        }
+        
+        // Move player smoothly towards target lane
+        const targetX = LANES[player.lane];
+        const dx = targetX - player.x;
+        player.x += dx * 0.2;
+
+        // Update trail
+        player.trail.push({ x: player.x + player.width / 2, y: player.y + player.height });
+        if (player.trail.length > 20) {
+            player.trail.shift();
+        }
+    }
+
+    function updateEntities() {
+        entities.forEach((entity, index) => {
+            entity.y += gameSpeed;
+
+            // Magnet logic
+            if (player.magnetized && entity.type === 'collectible') {
+                const dx = (player.x + player.width / 2) - (entity.x + entity.width / 2);
+                const dy = (player.y + player.height / 2) - (entity.y + entity.height / 2);
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 150) {
+                    entity.x += dx * 0.1;
+                    entity.y += dy * 0.1;
+                }
+            }
+
+            if (entity.y > canvas.height) {
+                if (entity.isGambleObstacle && currentActiveGamble) {
+                    currentActiveGamble.passedObstacles++;
+                    if(currentActiveGamble.passedObstacles >= currentActiveGamble.duration) {
+                        winGamble();
+                    }
+                }
+                entities.splice(index, 1);
+            }
+        });
+
+        // Spawn new entities
+        if (Math.random() < 0.02 * (gameSpeed / 5)) {
+            spawnEntity();
+        }
+    }
+
+    function updateStars() {
+        stars.forEach(star => {
+            star.y += star.speed * (gameSpeed / 5);
+            if (star.y > canvas.height) {
+                star.y = 0;
+                star.x = Math.random() * canvas.width;
+            }
+        });
+    }
+
+    function updateHUD() {
+        scoreDisplay.textContent = score;
+        credsDisplay.textContent = creds;
+        highScoreDisplay.textContent = highScore;
+        hitsDisplay.textContent = `${MAX_HITS - hits}/${MAX_HITS}`;
+    }
+    
+    function updateGame() {
+        distance += gameSpeed / 10;
+        score += 1;
+        if (score > highScore) {
+            highScore = score;
+        }
+        
+        // Trigger In-Run Gamble
+        const gambleTriggerDistance = Math.floor(distance / 1500); // Trigger every 1500m
+        if (gambleTriggerDistance > (this.lastGambleTrigger || 0) && !currentActiveGamble) {
+            this.lastGambleTrigger = gambleTriggerDistance;
+            triggerInRunGamble();
+        }
+        
+        if(currentActiveGamble && currentActiveGamble.distanceToEnd > 0) {
+            currentActiveGamble.distanceToEnd -= gameSpeed / 10;
+            if(currentActiveGamble.distanceToEnd <= 0) {
+                winGamble();
+            }
+        }
+    }
+
+    // --- Drawing Functions ---
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw Stars
+        ctx.fillStyle = '#fff';
+        stars.forEach(star => {
+            ctx.fillRect(star.x, star.y, star.size, star.size);
+        });
+
+        // Draw Road
+        const roadWidth = LANE_WIDTH * 3.5;
+        const roadX = canvas.width / 2 - roadWidth / 2;
+        ctx.fillStyle = ROAD_COLOR;
+        ctx.fillRect(roadX, 0, roadWidth, canvas.height);
+
+        // Draw Road Lines
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = 5;
+        ctx.setLineDash([20, 30]);
+        const lineOffset = (distance * 2) % 50;
+
+        ctx.beginPath();
+        ctx.moveTo(LANES[0] - LANE_WIDTH/2, 0);
+        ctx.lineTo(LANES[0] - LANE_WIDTH/2, canvas.height);
+        ctx.moveTo(LANES[2] + LANE_WIDTH/2, 0);
+        ctx.lineTo(LANES[2] + LANE_WIDTH/2, canvas.height);
+        ctx.stroke();
+
+        ctx.lineDashOffset = -lineOffset;
+        ctx.beginPath();
+        ctx.moveTo(LANES[1] - LANE_WIDTH/2, 0);
+        ctx.lineTo(LANES[1] - LANE_WIDTH/2, canvas.height);
+        ctx.moveTo(LANES[1] + LANE_WIDTH/2, 0);
+        ctx.lineTo(LANES[1] + LANE_WIDTH/2, canvas.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+
+        // Draw Player Trail
+        ctx.strokeStyle = player.cosmetics.trailColor;
+        ctx.lineWidth = player.isBoosting ? 10 : 5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        if(player.trail.length > 0) {
+            ctx.moveTo(player.trail[0].x, player.trail[0].y);
+            for (let i = 1; i < player.trail.length; i++) {
+                ctx.lineTo(player.trail[i].x, player.trail[i].y);
+            }
+            ctx.stroke();
+        }
+
+        // Draw Player
+        const wheelWidth = 8;
+        const wheelHeight = 12;
+
+        // Car body
+        ctx.fillStyle = player.cosmetics.color;
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+        
+        // Windshield
+        ctx.fillStyle = 'rgba(0, 170, 255, 0.7)';
+        ctx.fillRect(player.x + player.width * 0.1, player.y + player.height * 0.1, player.width * 0.8, player.height * 0.3);
+
+        // Headlights
+        ctx.fillStyle = '#fff'; // Headlight
+        ctx.fillRect(player.x, player.y, 8, 6);
+        ctx.fillRect(player.x + player.width - 8, player.y, 8, 6);
+
+        // Wheels
+        ctx.fillStyle = '#FF0000'; // Dark grey for wheels
+        // Front left wheel
+        ctx.fillRect(player.x - wheelWidth, player.y + 5, wheelWidth, wheelHeight);
+        // Front right wheel
+        ctx.fillRect(player.x + player.width, player.y + 5, wheelWidth, wheelHeight);
+        // Rear left wheel
+        ctx.fillRect(player.x - wheelWidth, player.y + player.height - wheelHeight - 5, wheelWidth, wheelHeight);
+        // Rear right wheel
+        ctx.fillRect(player.x + player.width, player.y + player.height - wheelHeight - 5, wheelWidth, wheelHeight);
+
+        if (player.shielded) {
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(
+                player.x - wheelWidth - 5,
+                player.y - 5,
+                player.width + 2 * wheelWidth + 10,
+                player.height + 10
+            );
+        }
+
+        // Draw Entities
+        entities.forEach(entity => {
+            ctx.fillStyle = entity.color;
+            ctx.fillRect(entity.x, entity.y, entity.width, entity.height);
+            if(entity.type === 'powerup') {
+                ctx.fillStyle = '#000';
+                ctx.font = '12px "Press Start 2P"';
+                ctx.textAlign = 'center';
+                let symbol = '';
+                if(entity.powerupType === 'Speed Boost') symbol = '>';
+                if(entity.powerupType === 'Shield') symbol = 'O';
+                if(entity.powerupType === 'Magnet') symbol = 'M';
+                ctx.fillText(symbol, entity.x + entity.width/2, entity.y + entity.height/2 + 5);
+            }
+        });
+        
+        // Draw HUD elements on canvas
+        // Boost Fuel
+        ctx.fillStyle = '#444';
+        ctx.fillRect(10, canvas.height - 30, 100, 20);
+        ctx.fillStyle = player.isBoosting ? '#ff0000' : '#00ff00';
+        ctx.fillRect(10, canvas.height - 30, player.boostFuel, 20);
+    }
+    
+    // --- Betting and Gamble Logic ---
+    function setupBets() {
+        const container = document.getElementById('bets-container');
+        container.innerHTML = '';
+        BETS.forEach(bet => {
+            const betEl = document.createElement('button');
+            betEl.className = 'neon-button text-left p-2 text-sm';
+            betEl.innerHTML = `
+                <p>${bet.text}</p>
+                <p class="text-xs">Bet: ${bet.bet} / Win: ${bet.win}</p>
+            `;
+            if (creds < bet.bet) {
+                betEl.disabled = true;
+            }
+            betEl.onclick = () => {
+                selectBet(bet, betEl);
+            };
+            container.appendChild(betEl);
+        });
+    }
+
+    function selectBet(bet, element) {
+        document.querySelectorAll('#bets-container .neon-button').forEach(btn => btn.classList.remove('active'));
+        if (currentActiveBet && currentActiveBet.id === bet.id) {
+            currentActiveBet = null; // Deselect
+        } else if (creds >= bet.bet) {
+            currentActiveBet = bet;
+            element.classList.add('active');
+        }
+    }
+    
+    function triggerInRunGamble() {
+        isPaused = true;
+        const gamble = GAMBLES[Math.floor(Math.random() * GAMBLES.length)];
+        gambleTitle.textContent = gamble.title;
+        gambleDescription.textContent = gamble.description(gamble.bet, gamble.win);
+        
+        if (creds < gamble.bet) {
+            acceptGambleButton.disabled = true;
+        } else {
+            acceptGambleButton.disabled = false;
+        }
+        
+        inRunGambleScreen.style.display = 'flex';
+
+        acceptGambleButton.onclick = () => {
+            isPaused = false;
+            inRunGambleScreen.style.display = 'none';
+            creds -= gamble.bet;
+            currentActiveGamble = { ...gamble };
+            if (gamble.id === 'speed_zone') {
+                currentActiveGamble.distanceToEnd = gamble.duration;
+            }
+            if (gamble.id === 'gauntlet') {
+                currentActiveGamble.obstaclesToPass = gamble.duration;
+                currentActiveGamble.passedObstacles = 0;
+            }
+            currentActiveGamble.startEffect();
+        };
+        
+        declineGambleButton.onclick = () => {
+            isPaused = false;
+            inRunGambleScreen.style.display = 'none';
+        };
+    }
+
+    function winGamble() {
+        if (!currentActiveGamble) return;
+        creds += currentActiveGamble.win;
+        currentActiveGamble.endEffect();
+        currentActiveGamble = null;
+        // You could add a temporary "SUCCESS" message on screen
+    }
+
+    function failGamble() {
+        if (!currentActiveGamble) return;
+        currentActiveGamble.endEffect();
+        currentActiveGamble = null;
+        // You could add a temporary "FAILED" message on screen
+    }
+
+    // --- Shop Logic ---
+    function setupShop() {
+        bikeCosmeticsContainer.innerHTML = '';
+        trailCosmeticsContainer.innerHTML = '';
+        
+        const selectedBike = localStorage.getItem('selectedBike') || COSMETICS.bike[0].value;
+        const selectedTrail = localStorage.getItem('selectedTrail') || COSMETICS.trail[0].value;
+
+        COSMETICS.bike.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'neon-button';
+            btn.style.backgroundColor = unlockedCosmetics[item.id] ? item.value : '';
+            btn.style.color = unlockedCosmetics[item.id] ? '#0d0221' : '';
+            btn.textContent = unlockedCosmetics[item.id] ? item.name : `${item.name} (${item.cost}C)`;
+            if(item.value === selectedBike) btn.classList.add('active');
+
+            btn.onclick = () => {
+                if (unlockedCosmetics[item.id]) {
+                    player.cosmetics.color = item.value;
+                    localStorage.setItem('selectedBike', item.value);
+                    document.querySelectorAll('#bike-cosmetics .neon-button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                } else if (creds >= item.cost) {
+                    creds -= item.cost;
+                    unlockedCosmetics[item.id] = true;
+                    saveData();
+                    updateHUD();
+                    setupShop(); // Refresh shop UI
+                }
+            };
+            bikeCosmeticsContainer.appendChild(btn);
+        });
+        
+        COSMETICS.trail.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'neon-button';
+            btn.style.borderColor = item.value;
+            btn.style.textShadow = `0 0 5px ${item.value}`;
+            btn.textContent = unlockedCosmetics[item.id] ? item.name : `${item.name} (${item.cost}C)`;
+            if(item.value === selectedTrail) btn.classList.add('active');
+
+            btn.onclick = () => {
+                if (unlockedCosmetics[item.id]) {
+                    player.cosmetics.trailColor = item.value;
+                    localStorage.setItem('selectedTrail', item.value);
+                    document.querySelectorAll('#trail-cosmetics .neon-button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                } else if (creds >= item.cost) {
+                    creds -= item.cost;
+                    unlockedCosmetics[item.id] = true;
+                    saveData();
+                    updateHUD();
+                    setupShop();
+                }
+            };
+            trailCosmeticsContainer.appendChild(btn);
+        });
+    }
+
+    // --- Game Flow ---
+    function gameLoop() {
+        if (isGameOver || isPaused) {
+            animationFrameId = requestAnimationFrame(gameLoop);
+            return;
+        }
+
+        updatePlayer();
+        updateEntities();
+        updateStars();
+        checkCollisions();
+        updateGame();
+        updateHUD();
+
+        draw();
+
+        animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function startGame() {
+        // Reset game state
+        score = 0;
+        distance = 0;
+        gameSpeed = 5;
+        isGameOver = false;
+        isPaused = false;
+        hits = 0;
+        entities = [];
+        collectiblesThisRun = 0;
+        powerupsUsedThisRun = {};
+        player.lane = 1;
+        player.x = LANES[player.lane];
+        player.trail = [];
+        player.boostFuel = 100;
+        player.shielded = false;
+        player.magnetized = false;
+        currentActiveGamble = null;
+        this.lastGambleTrigger = 0;
+
+        if (currentActiveBet) {
+            creds -= currentActiveBet.bet;
+        }
+
+        startScreen.style.display = 'none';
+        gameOverScreen.style.display = 'none';
+        
+        if(animationFrameId) cancelAnimationFrame(animationFrameId);
+        gameLoop();
+    }
+
+    function endGame() {
+        isGameOver = true;
+        cancelAnimationFrame(animationFrameId);
+
+        // Calculate bet results
+        betResultsContainer.innerHTML = '';
+        if (currentActiveBet) {
+            if (currentActiveBet.condition()) {
+                creds += currentActiveBet.win;
+                betResultsContainer.innerHTML = `<p class="text-green-400">Bet Won! +${currentActiveBet.win} Creds</p>`;
+            } else {
+                betResultsContainer.innerHTML = `<p class="text-red-400">Bet Lost! -${currentActiveBet.bet} Creds</p>`;
+            }
+        }
+
+        finalScore.textContent = score;
+        gameOverScreen.style.display = 'flex';
+        
+        saveData();
+    }
+
+    // --- Event Listeners ---
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('keydown', e => {
+        keys[e.key] = true;
+        if (isGameOver || isPaused) return;
+
+        if (e.key === 'a' || e.key === 'ArrowLeft') {
+            player.lane = Math.max(0, player.lane - 1);
+        }
+        if (e.key === 'd' || e.key === 'ArrowRight') {
+            player.lane = Math.min(2, player.lane + 1);
+        }
+    });
+    window.addEventListener('keyup', e => {
+        keys[e.key] = false;
+    });
+
+    let touchStartX = 0;
+
+    window.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+
+    window.addEventListener('touchend', e => {
+        if (isGameOver || isPaused) return;
+
+        const touchEndX = e.changedTouches[0].screenX;
+        const swipeDistance = touchEndX - touchStartX;
+        const swipeThreshold = 50; // Minimum distance for a swipe
+
+        if (swipeDistance > swipeThreshold) { // Swipe Right
+            player.lane = Math.min(2, player.lane + 1);
+        } else if (swipeDistance < -swipeThreshold) { // Swipe Left
+            player.lane = Math.max(0, player.lane - 1);
+        }
+    });
+
+    startButton.addEventListener('click', startGame);
+    retryButton.addEventListener('click', () => {
+        gameOverScreen.style.display = 'none';
+        startScreen.style.display = 'flex';
+        currentActiveBet = null;
+        setupBets();
+    });
+    
+    shopButton.addEventListener('click', () => {
+        setupShop();
+        shopModal.style.display = 'flex';
+    });
+    
+    closeShopButton.addEventListener('click', () => {
+        shopModal.style.display = 'none';
+    });
+
+
+    // --- Initialization ---
+    function init() {
+        loadData();
+        resizeCanvas();
+        updateHUD();
+        setupBets();
+        startScreen.style.display = 'flex';
+    }
+
+    init();
+
+</script>
+</body>
+</html>
