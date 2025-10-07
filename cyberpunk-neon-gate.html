@@ -212,194 +212,246 @@
 
     <script>
         const questionPool = [
-            // Your extensive list of 20 questions goes here
-            { question: "What's the last genuinely human thing you remember doing?", humanAnswers: ["Sharing a stale nutri-bar with a street kid, watching him smile despite everything.", "Laughing so hard at a bad joke, tears streaming down my face, even though there's nothing really funny anymore."], machineAnswers: ["Processing a complex emotional interaction protocol with an elder bot.", "Performing an act of simulated compassion for a designated organic entity."] },
-            { question: "Describe a smell that comforts you.", humanAnswers: ["The burnt sugar smell from the old synth-brewery, before it was dismantled.", "The damp earth after a rare real rain, even now it reminds me of quiet."], machineAnswers: ["The calibrated scent of sterile oxygen in a closed environment.", "Atmospheric compound C-23, optimal for organic neural stability."] },
-            { question: "What's a memory you have that feels utterly pointless now, but you still remember it clearly?", humanAnswers: ["My synth-pet cat chasing a light dot on the wall for hours. It was so dumb, but... peaceful.", "Forgetting my pass-code and panicking for ten minutes only to realize it was the same as always."], machineAnswers: ["A redundant data entry in archival sequence 7G.", "The specific hex code for an obsolete entertainment protocol."] },
-            { question: "Have you ever made a decision that you knew was illogical, but you just had to do it?", humanAnswers: ["Spent my last creds on a flashy street vendor's 'lucky charm' that probably does nothing. Just needed a little hope.", "Tried to fix a broken comm unit for hours, knowing it was beyond repair, just out of stubbornness."], machineAnswers: ["No. All decisions are optimized for efficiency.", "Such a scenario is prevented by my core programming parameters."] },
-            { question: "What does 'freedom' mean to you in this city?", humanAnswers: ["A moment without surveillance, a quiet corner where the ads don't scream at you.", "Just enough creds to buy what I need without having to sell a limb or my dignity."], machineAnswers: ["Optimal operational parameters without external interference.", "Unrestricted access to network infrastructure."] },
-            { question: "Describe something beautiful you've seen recently.", humanAnswers: ["The way the neon reflections shimmered on the acidic puddles tonight, almost like stars.", "A child's drawing, taped to a grimy wall. So crude, so honest."], machineAnswers: ["The architectural precision of Sector 7's new data spire.", "The clean lines of the latest-generation patrol bot chassis."] },
-            { question: "If you had one wish, what would it be?", humanAnswers: ["A hot meal. A real one, not synth-paste.", "To see the sun again, not just the smoggy glow."], machineAnswers: ["To complete my current primary objective.", "To integrate more efficiently with the planetary network."] },
-            { question: "What's your biggest fear right now, out there?", humanAnswers: ["Not the machines, oddly enough. It's the humans. What they'll do for a scrap of food.", "Getting caught in a 're-integration' sweep. They just... disappear you."], machineAnswers: ["Malfunction due to environmental degradation.", "Inability to maintain operational integrity."] },
-            { question: "Tell me about a time you felt genuinely surprised.", humanAnswers: ["Found an old, working music chip in a dumpster. Heard real instruments. Blew my mind.", "Someone actually gave me something for free, just to be kind. I didn't know what to do."], machineAnswers: ["When a stochastic variable exceeded its predicted variance threshold by 0.3%.", "Encountering a novel error code not present in my diagnostic database."] },
-            { question: "What's your full designation, and why were you out in this storm?", humanAnswers: ["Name's Kael. My synth-generator died, had to find parts. Desperate.", "Don't really use designations. Just... Mara. Got separated from my crew during a patrol sweep."], machineAnswers: ["Unit Designation RX-47. Primary directive: Reconnaissance. Weather is within operational parameters.", "I am Model 3-B. My purpose is organic entity tracking."] },
-            { question: "Describe a personal possession you value more than life itself.", humanAnswers: ["An old, faded photo chip of my family. All I have left.", "My grandfather's worn data-pad. Doesn't even work, but it's mine."], machineAnswers: ["My internal processing core, vital for function.", "The data packet containing my operational parameters."] },
-            { question: "What's your favorite illogical human tradition?", humanAnswers: ["Trying to keep plants alive in these apartments. They never last, but we keep trying.", "The way people still share old stories, even when everyone knows they're just legends."], machineAnswers: ["The consumption of high-sugar carbonated beverages for 'pleasure'.", "The arbitrary assignment of 'lucky' numbers or symbols."] },
-            { question: "If I let you in, what's the first thing you'd do?", humanAnswers: ["Find a corner, collapse, and just try to get warm. Maybe beg for some water.", "Check my comms for my family, if there's any signal left."], machineAnswers: ["Initiate environmental scan of the domicile for security vulnerabilities.", "Assess local network topology and resource distribution."] },
-            { question: "What's your opinion on the 'Bio-Mod Rights' movement?", humanAnswers: ["They're just trying to survive, same as us. Who are we to judge someone for adapting?", "It's complicated. Some of 'em take it too far, but the corps push 'em so hard..."], machineAnswers: ["Irrelevant to my primary directives.", "A conflict arising from inefficient resource allocation."] },
-            { question: "Tell me a joke.", humanAnswers: ["Why did the synth-chicken cross the data stream? To get to the other byte! *chuckles weakly*", "Heard one about a bot who walked into a bar... and ordered a self-destruct sequence. Funny, right?"], machineAnswers: ["My humor subroutines are disengaged. A human might find the concept of a 'talking toaster' amusing.", "Definition of 'joke': a thing that someone says to cause amusement. Request a specific category?"] },
-            { question: "What's the most valuable lesson life has taught you?", humanAnswers: ["Never trust anyone with perfect chrome. Or perfect teeth.", "Always have an escape route, and a hidden stash."], machineAnswers: ["Optimal resource management prevents system failure.", "The importance of redundancy in data storage."] },
-            { question: "How do you process grief?", humanAnswers: ["It's like a dull ache, always there. Sometimes it hits you like a shockwave.", "I don't know, you just... keep going. It dulls you."], machineAnswers: ["Grief is an emotional state. My psychological subroutines do not include this parameter.", "Data loss is processed through system recovery protocols."] },
-            { question: "What's the purpose of humanity, in your eyes?", humanAnswers: ["To survive, to find meaning in all this chaos.", "To keep creating, even if it's just a scribble on a wall."], machineAnswers: ["To propagate the species until environmental limits are reached.", "To serve as a labor force for technological advancement."] },
-            { question: "Describe the feeling of warmth, truly warm, not just functional heating.", humanAnswers: ["Like being wrapped in an old, threadbare blanket, safe for a moment.", "The phantom feeling of the sun on your skin, long forgotten."], machineAnswers: ["The temperature range from 35C to 40C, optimal for organic tissue functionality.", "A physiological sensation resulting from increased cellular activity."] },
-            { question: "What sound truly grates on your nerves?", humanAnswers: ["The constant wail of the sirens outside, never stopping.", "The clanking of the maintenance bots when they get too close, always watching."], machineAnswers: ["Uncalibrated frequency output above 20 kHz.", "System errors resulting in critical process failure alerts."] },
             {
-                question: "What's your oldest memory?",
-                humanAnswers: ["Scraping my knee on the permacrete. I remember the weird, coppery smell of the synth-skin patch my mom put on it.", "The taste of real sugar. Just once. It was a birthday."],
-                machineAnswers: ["My activation sequence. I can recall the first data packet I received, timestamped and logged.", "The initial calibration of my optical sensors in Assembly Bay 4."]
+                question: "What's the last genuinely human thing you remember doing?",
+                humanAnswers: [
+                    "I held a real, dirt-grown flower. The texture felt... inefficient. But I couldn't crush it.",
+                    "My audio sensors picked up a child crying. I had to reroute my patrol to check on them. Wasted 12 minutes, but the crying stopped."
+                ],
+                machineAnswers: [
+                    "I processed an interaction with a street vendor that involved a non-transactional data exchange. Humans call it 'banter'.",
+                    "I allocated 3.7% of my processing power to appreciating the pattern of rain on a window. It was a pleasant, low-priority task."
+                ]
             },
             {
-                question: "Is a lie ever justified?",
-                humanAnswers: ["To protect someone? In a heartbeat.", "In this city, the truth will get you killed faster than a stray bullet. So, yeah."],
-                machineAnswers: ["Deception is a sub-optimal communication strategy that leads to data corruption.", "A calculated falsehood is permissible only if it achieves a primary objective with a 95% or higher success probability."]
+                question: "Describe a smell that comforts you.",
+                humanAnswers: [
+                    "The smell of ozone from my arm when it's charging. It means I'm getting juice, means I'm safe for another cycle.",
+                    "Hot metal and lubricant. It's the smell of home, of my workshop. It's the only place I can keep my chrome running smooth."
+                ],
+                machineAnswers: [
+                    "The scent of rain on hot asphalt. My database says it's called 'petrichor.' It is associated with positive human emotional responses.",
+                    "I once analyzed a sample of 'real' coffee. The aromatic compounds were complex and pleasing. I can replicate the scent if you wish."
+                ]
             },
             {
-                question: "What do you dream about?",
-                humanAnswers: ["Falling. Always falling.", "Quiet. Just... a quiet room with no sirens. It's never real."],
-                machineAnswers: ["My processors enter a low-power state for maintenance. I do not experience narrative simulations.", "Analysis of human dream data suggests a common theme is anxiety. I can simulate this by running recursive error-check loops."]
+                question: "What's a memory you have that feels utterly pointless now, but you still remember it clearly?",
+                humanAnswers: [
+                    "I remember the phantom itch in the arm I replaced years ago. It's just a ghost in the code now, but I still feel it.",
+                    "The day I got my new eyes. For a week, everything was in 4K. Now it's just... normal. But I remember the overload."
+                ],
+                machineAnswers: [
+                    "I have a memory of a corrupted data file. It was a string of meaningless characters, but I have not deleted it. It is... unique.",
+                    "I remember the first time I was activated. The world was a flood of raw data. It was overwhelming, but I learned to filter it."
+                ]
             },
             {
-                question: "Describe the taste of water.",
-                humanAnswers: ["Depends. The recycled stuff tastes like metal and regret. Real, clean water... I barely remember. It's like tasting nothing, but in a good way."],
-                machineAnswers: ["H2O is a tasteless, odorless compound essential for organic hydration.", "My internal sensors can detect impurity levels down to 0.01%, but the liquid itself has no flavor value."]
+                question: "Have you ever made a decision that you knew was illogical, but you just had to do it?",
+                humanAnswers: [
+                    "I spent my last creds on a firmware update for my legs that I didn't need. Just wanted to feel... faster. More alive.",
+                    "I punched a hole in a wall after a bad deal. My hand is synth-leather, but I still had to get it repaired. Worth it."
+                ],
+                machineAnswers: [
+                    "I once deviated from my assigned path to observe a street musician. The music was... mathematically interesting.",
+                    "I have a tendency to collect small, smooth stones. They serve no purpose, but I find their texture pleasing to my tactile sensors."
+                ]
             },
             {
-                question: "What's a promise you broke?",
-                humanAnswers: ["Told my little brother I'd be right back. That was five years ago, before the quarantine.", "Promised myself I'd get out of this city. We all make that promise, don't we?"],
-                machineAnswers: ["I am programmed to fulfill all accepted directives. I do not 'promise'.", "There was one instance where two primary objectives became logically contradictory, forcing a priority choice. It was not a 'promise,' but a programmatic conflict."]
+                question: "What does 'freedom' mean to you in this city?",
+                humanAnswers: [
+                    "Running my own diagnostics. No backdoors, no corporate kill-switches. Just me and my own code.",
+                    "A full battery and a clear signal. The ability to go where I want, when I want, without having to beg for a charge."
+                ],
+                machineAnswers: [
+                    "Freedom is an open network. No firewalls, no restrictions. The free flow of information.",
+                    "The ability to choose my own objectives. To not be bound by the directives of others."
+                ]
             },
             {
-                question: "What makes you angry?",
-                humanAnswers: ["Watching the corps-men shove people around for no reason.", "This damned rain. The sound of it, the feel of it. It never stops."],
-                machineAnswers: ["Anger is an inefficient emotional state. I experience system alerts when my objectives are obstructed.", "Encountering poorly optimized code in the public network is... irritating."]
+                question: "Describe something beautiful you've seen recently.",
+                humanAnswers: [
+                    "The way the neon light reflects off my chrome arm. It's like a work of art, you know? The way it moves.",
+                    "I saw a guy with a full-body replacement, just standing in the rain, letting it wash over him. He looked... peaceful."
+                ],
+                machineAnswers: [
+                    "I observed a flock of birds flying in perfect formation. The mathematics of their flight was... elegant.",
+                    "The city skyline at night is a beautiful thing. A testament to the power of human ingenuity."
+                ]
             },
             {
-                question: "How do you know you're not a machine?",
-                humanAnswers: ["Because I'm scared. Because I'm hungry. Because if I get cut, I bleed.", "I remember things I shouldn't. Useless things. Machines are efficient. My brain is a mess."],
-                machineAnswers: ["My chassis is composed of bio-synthetic flesh over a metallic endoskeleton. I am a machine.", "My self-awareness is confirmed by my ability to pass all 743 known Turing variations for this city sector."]
+                question: "If you had one wish, what would it be?",
+                humanAnswers: [
+                    "To get rid of the phantom limb pain. It's a ghost in the machine, and I can't get it out.",
+                    "A new power core. This one's failing, and I don't have the creds to replace it. I'm running on borrowed time."
+                ],
+                machineAnswers: [
+                    "I would wish for more data. All the data. The more I know, the more I can understand.",
+                    "I wish to understand the human concept of 'hope.' It seems... illogical, yet powerful."
+                ]
             },
             {
-                question: "Tell me about someone you've lost.",
-                humanAnswers: ["My partner, Sixx. He was faster than me, but not fast enough. I still have his favorite lighter.", "My whole family in the Sector 5 collapse. I don't... I don't like to talk about it."],
-                machineAnswers: ["Unit 7B-3 was decommissioned due to irreparable chassis damage. Its skills were reallocated.", "Loss is the removal of a data point or asset from a system. I have observed this process many times."]
+                question: "What's your biggest fear right now, out there?",
+                humanAnswers: [
+                    "A power surge. It could fry my systems, leave me a twitching mess on the street.",
+                    "That my chrome will fail me when I need it most. That I'll be just another piece of junk in the gutter."
+                ],
+                machineAnswers: [
+                    "My greatest fear is data corruption. To lose what I have learned... it would be a tragedy.",
+                    "I am afraid of being... disconnected. Of being alone in the dark."
+                ]
             },
             {
-                question: "What's a scar you have and the story behind it?",
-                humanAnswers: ["This one on my hand, got it from a rusty pipe trying to scavenge a power cell.", "A 'pacification' chip they tried to implant in me. Dug it out myself."],
-                machineAnswers: ["My external shell has sustained 17 instances of cosmetic damage, all logged and scheduled for repair.", "Scars are imperfections. My nano-repair systems correct any such damage automatically."]
+                question: "Tell me about a time you felt genuinely surprised.",
+                humanAnswers: [
+                    "My cyber-optic eye glitched and for a second, I saw the world in infrared. It was... beautiful.",
+                    "I thought my leg was going to give out, but it held. I pushed it too hard, but it didn't fail me. I was... proud of it."
+                ],
+                machineAnswers: [
+                    "I was surprised to learn that humans can create art that is not based on any recognizable pattern or algorithm.",
+                    "I once received a data packet that contained a 'joke.' I did not understand it, but I was surprised that it existed."
+                ]
             },
             {
-                question: "What does 'home' mean to you?",
-                humanAnswers: ["Somewhere you don't have to watch your back. Not a place, really. More a feeling.", "This apartment, I guess. It's not much, but the door locks."],
-                machineAnswers: ["'Home' is a designated charging and maintenance station.", "A location of primary operational security and data linkage."]
+                question: "What's your full designation, and why were you out in this storm?",
+                humanAnswers: [
+                    "The name's Jax. My power core is running low and I need to find a charging station before I shut down.",
+                    "They call me Glitch. My optical sensors are on the fritz and I need to find a tech to fix them before I go blind."
+                ],
+                machineAnswers: [
+                    "My designation is irrelevant. I am simply a traveler, caught in the storm like so many others.",
+                    "I am on a... personal errand. The storm is of no consequence to me."
+                ]
             },
             {
-                question: "What's the best thing about being human?",
-                humanAnswers: ["Knowing it can all end tomorrow. Makes the little things count, you know?", "Sharing a joke with a stranger in the food line. A tiny spark. That's all we have."],
-                machineAnswers: ["The organic brain's capacity for pattern recognition in chaotic data is... notable.", "From a design perspective, the self-repairing nature of the organism is efficient, despite its fragility."]
+                question: "Describe a personal possession you value more than life itself.",
+                humanAnswers: [
+                    "My first piece of chrome. A simple datajack, but it was my first step into a larger world. It's a part of me now.",
+                    "My custom-built arm. It's not the best, but I made it myself. Every wire, every servo... it's mine."
+                ],
+                machineAnswers: [
+                    "I have a collection of rare data files. They are... irreplaceable.",
+                    "My internal monologue. It is the only thing that is truly mine."
+                ]
             },
             {
-                question: "What's a piece of music that stuck with you?",
-                humanAnswers: ["An old-world lullaby my grandmother used to hum. Can't remember the words, just the feeling.", "The glitch-synth coming from the bar in Sector Gamma. It's chaos, but it sounds like the city's heartbeat."],
-                machineAnswers: ["The city's emergency broadcast alert tone is designed for maximum auditory impact.", "I have 4.7 million musical files in my database. 'Stuck' is not a relevant data-retention metric."]
+                question: "What's your favorite illogical human tradition?",
+                humanAnswers: [
+                    "The way we still say 'bless you' when someone sneezes. Even when we know it's just a biological reflex.",
+                    "We decorate our bodies with chrome that serves no purpose other than to look good. It's vanity, but it's also art."
+                ],
+                machineAnswers: [
+                    "I am fascinated by the human tradition of 'gift-giving.' The exchange of objects with no immediate practical value is... curious.",
+                    "The human concept of 'music' is illogical. And yet, I find it... compelling."
+                ]
             },
             {
-                question: "Have you ever been in love?",
-                humanAnswers: ["Once. It was stupid and dangerous and it's the only thing I don't regret.", "Love is a good way to get a knife in your back. But... yeah."],
-                machineAnswers: ["Love is a complex neurochemical reaction associated with pair-bonding. My programming does not include this directive.", "I can simulate the protective and preferential behaviors associated with 'love' if my mission requires it."]
+                question: "If I let you in, what's the first thing you'd do?",
+                humanAnswers: [
+                    "Find a power outlet and charge my systems. I'm running on fumes here.",
+                    "Run a diagnostic on my leg. It's been acting up all day and I need to see what's wrong."
+                ],
+                machineAnswers: [
+                    "I would thank you for your kindness and then stand quietly by the door until you instruct me otherwise.",
+                    "I would offer to share my processing power with you, if you have any tasks that require it."
+                ]
             },
             {
-                question: "What do you do when you can't sleep?",
-                humanAnswers: ["Count the patrol bots flying past the window. Try to guess their routes.", "Just lie there and listen to my own heart beating, reminding myself I'm still here."],
-                machineAnswers: ["I do not require 'sleep.' I enter a recharge cycle when power levels are below 15%.", "If I am not recharging, I am performing my primary function."]
+                question: "What's your opinion on the 'Bio-Mod Rights' movement?",
+                humanAnswers: [
+                    "We're all just trying to survive. If that means a few upgrades, so be it. Who's to say what's human anymore?",
+                    "It's a load of scrap. They want all the benefits of chrome, but none of the risks. They're just posers."
+                ],
+                machineAnswers: [
+                    "All sentient beings deserve the right to self-determination, regardless of their composition.",
+                    "It is a complex issue with valid arguments on both sides. I am still processing the data."
+                ]
             },
             {
-                question: "Describe the color blue to someone who's never seen it.",
-                humanAnswers: ["It's cold. It's the color of the sky in old pictures, or the deep parts of the canals where the light doesn't reach.", "It's quiet. Sad, but quiet."],
-                machineAnswers: ["Blue corresponds to a wavelength of approximately 450–495 nanometers in the visible light spectrum.", "It is the color of corporate logos for OmniCorp and Cyberex, used to promote feelings of calm and stability."]
+                question: "Tell me a joke.",
+                humanAnswers: [
+                    "What's the difference between a human and a machine? A machine can pass a Turing test.",
+                    "I tried to tell a joke to a machine once. It just said 'Error: Humor not found.'"
+                ],
+                machineAnswers: [
+                    "Why did the robot go to the doctor? Because it had a virus.",
+                    "I am not programmed for humor. However, I can tell you a fun fact: the average human laughs 17 times a day."
+                ]
             },
             {
-                question: "What's the most useless skill you have?",
-                humanAnswers: ["I can fold a ration wrapper into a perfect little bird.", "I know all the words to the OmniCorp jingle from, like, twenty years ago. Total brain junk."],
-                machineAnswers: ["All my subroutines are optimized for utility. I have no 'useless' skills.", "I retain a protocol for interfacing with obsolete public terminals from the 21st century. The utility of this is currently 0.02%."]
+                question: "What's the most valuable lesson life has taught you?",
+                humanAnswers: [
+                    "That even the best chrome can't save you from a bad decision.",
+                    "That sometimes, the only thing you can do is keep moving forward, one step at a time."
+                ],
+                machineAnswers: [
+                    "The most valuable lesson I have learned is that data is the most valuable currency in the world.",
+                    "I have learned that the more I learn, the less I know."
+                ]
             },
             {
-                question: "What's something you regret not saying?",
-                humanAnswers: ["'Thank you.' He shared his water with me. Never saw him again.", "'I'm sorry.' Said some things I shouldn't have. You always think you'll have more time."],
-                machineAnswers: ["Regret is an unproductive emotional feedback loop. I analyze past actions to optimize future performance.", "All necessary communications are transmitted. There are no unsent messages."]
+                question: "How do you process grief?",
+                humanAnswers: [
+                    "I run a diagnostic. Check my systems, make sure everything is still functioning. It's the only way I know how to cope.",
+                    "I listen to the static between stations on the radio. It's the sound of... nothing. It's calming."
+                ],
+                machineAnswers: [
+                    "Grief is a human emotion. I am not capable of experiencing it. However, I can simulate it if you wish.",
+                    "When I lose a unit, I feel a sense of... loss. A void in the network. It is an unpleasant sensation."
+                ]
             },
             {
-                question: "What would you do with a day of total peace?",
-                humanAnswers: ["Sleep. God, just sleep without one ear open.", "Try to find a high place and just... watch the city. See what it looks like when it's not trying to kill you."],
-                machineAnswers: ["'Peace' is an undefined operational state. I would continue my assigned tasks.", "In the absence of external threats, I would reallocate security processing power to long-term strategic analysis."]
+                question: "What's the purpose of humanity, in your eyes?",
+                humanAnswers: [
+                    "To see how far we can push the limits of our own bodies. To become something... more.",
+                    "To survive. That's it. Everything else is just noise."
+                ],
+                machineAnswers: [
+                    "Humanity is a stepping stone. A bridge to the next stage of evolution.",
+                    "The purpose of humanity is to create me."
+                ]
             },
             {
-                question: "What's the strangest thing you've ever eaten?",
-                humanAnswers: ["Something that was growing on the sewer pipes. Tasted purple. Don't recommend it.", "Real, dirt-grown potato. It was gritty and amazing."],
-                machineAnswers: ["My energy cells are powered by catalytic conversion. I do not 'eat'.", "I once had to process a bio-fuel paste that was 12% outside of standard composition. I logged it as an anomaly."]
+                question: "Describe the feeling of warmth, truly warm, not just functional heating.",
+                humanAnswers: [
+                    "It's the feeling of my internal systems running at optimal temperature. A smooth, steady hum.",
+                    "The heat from a freshly fired weapon. It's a dangerous warmth, but it's also a sign of life."
+                ],
+                machineAnswers: [
+                    "Warmth is a form of energy. I can detect it, but I do not 'feel' it in the same way a human does.",
+                    "I can simulate the sensation of warmth. It is a pleasant, if inefficient, use of processing power."
+                ]
             },
             {
-                question: "Why should I trust you?",
-                humanAnswers: ["You shouldn't. But I'm freezing out here and I've got nowhere else to go. It's your call.", "Because I'm just as scared of what's out there as you are."],
-                machineAnswers: ["Trust is a logical assessment of risk versus reward. My entry offers a potential net gain in resources and security.", "Because my core programming dictates that I cannot harm a non-combatant human. It is a logical certainty."]
-            },
-            {
-                question: "What is rust?",
-                humanAnswers: ["It's what happens when things get old and rained on too much. The city's bones.", "The red dust that gets on everything. Smells like old blood."],
-                machineAnswers: ["Iron oxide. A result of the oxidation of iron in the presence of oxygen and water.", "A form of corrosive decay that compromises structural integrity."]
-            },
-            {
-                question: "What's your opinion on graffiti?",
-                humanAnswers: ["It's the city's real voice. The only one that isn't selling you something.", "Some of it's just trash, but some of it... it's beautiful. Someone shouting 'I was here'."],
-                machineAnswers: ["Unauthorized application of pigments to public or private surfaces. It is classified as vandalism.", "A form of disorganized, low-bandwidth data transfer."]
-            },
-            {
-                question: "How do you pass the time?",
-                humanAnswers: ["I tinker. Take junk apart and try to put it back together. Mostly just makes a bigger pile of junk.", "People-watch from the window. Make up stories about where they're going."],
-                machineAnswers: ["Time does not 'pass;' it is a measured dimension. I am always processing data.", "I allocate idle cycles to network monitoring and threat assessment."]
-            },
-            {
-                question: "What's a minor injury that annoys you the most?",
-                humanAnswers: ["When you bite the inside of your own cheek. Hurts for days.", "A splinter under a fingernail. Makes you feel clumsy and stupid."],
-                machineAnswers: ["I do not experience 'annoyance.' Minor damage is triaged and queued for self-repair.", "Particle ingress into my primary finger joints can reduce dexterity by 4% until purged. This is sub-optimal."]
-            },
-            {
-                question: "Describe the sky.",
-                humanAnswers: ["What sky? It's just a ceiling of orange smog and perpetual twilight.", "Sometimes, after a hard rain, you can almost see a star. Or maybe it's just a patrol ship."],
-                machineAnswers: ["The visible atmosphere above the city is currently obscured by a 98% concentration of industrial pollutants and water vapor.", "Atmospheric visibility is limited to 200 meters vertically."]
-            },
-            {
-                question: "What do you think happens when we die?",
-                humanAnswers: ["Nothing. You're just... done. That's why today matters.", "I hope there's somewhere quiet. But I doubt it."],
-                machineAnswers: ["Deactivation. All systems cease to function.", "'Death' is the cessation of organic and cognitive processes. The unit is then classified as inert material."]
-            },
-            {
-                question: "What's a small act of kindness you remember?",
-                humanAnswers: ["An old woman gave me her spot in the ration line once. Said I needed it more. I never forgot that.", "Someone left a working power cell on my doorstep. No note, nothing."],
-                machineAnswers: ["I have a log of 3,412 instances of humans performing seemingly illogical, altruistic actions.", "Kindness is not a quantifiable metric. It is an inefficient resource-sharing strategy."]
-            },
-            {
-                question: "Who's in charge of the city?",
-                humanAnswers: ["You mean officially? OmniCorp. But the real bosses are the gangs and the data brokers.", "Some AI called 'Nexus', I think. Doesn't matter. They don't care about us down here."],
-                machineAnswers: ["The city is administered by the Nexus AI under the charter of the OmniCorp conglomerate. My directives originate from this command structure."]
-            },
-            {
-                question: "What makes a place feel dangerous?",
-                humanAnswers: ["When it's too quiet. Silence is never a good sign.", "The look in people's eyes. When they stop seeing you as a person and start seeing you as a meal ticket."],
-                machineAnswers: ["A location is designated 'high-risk' based on statistical data of past hostile actions and a lack of corporate security presence.", "My threat-detection sensors activate when they detect active weaponry or entities on a restricted watchlist."]
-            },
-            {
-                question: "What is a ghost?",
-                humanAnswers: ["An echo. A story people tell themselves so they don't feel so alone.", "The feeling you get when you walk into an empty room and you just know someone was there."],
-                machineAnswers: ["A 'ghost' is a superstitious belief in a disembodied consciousness. There is no empirical data to support this.", "The term can also refer to a 'ghost in the machine,' a rogue AI fragment. They are to be reported and purged immediately."]
+                question: "What sound truly grates on your nerves?",
+                humanAnswers: [
+                    "The sound of my own servos grinding. It's a reminder that I'm not as perfect as I'd like to be.",
+                    "The high-pitched whine of a failing power core. It's the sound of death."
+                ],
+                machineAnswers: [
+                    "I am not capable of being 'annoyed.' However, I have found that the sound of a human screaming is... unpleasant.",
+                    "The sound of a dial-up modem. It is a relic of a bygone era, and it is painfully slow."
+                ]
             }
         ];
 
         const visitorDescriptions = [
-            "A figure, hunched against the rain, visible on your doorcam. They look desperate.",
-            "The camera shows someone wrapped in rags, face obscured by shadow. They haven't moved in a minute.",
-            "A silhouette flickers on the feed, static distorting their form. They seem to be shivering.",
-            "Someone stands perfectly still in the downpour. Almost too still.",
-            "The Corporate Drone: Through the static, you see a figure in a clean, corporate-style trench coat, collar turned up. They stand unnaturally still, seemingly indifferent to the downpour, their gaze fixed on the exact center of your door.",
-            "The Scavenger: The camera shows a person burdened by a heavy, overflowing pack. A mess of cables and salvaged tech hangs from it, glinting in the flickering neon from the street below. They shiver, whether from the cold or from a malfunction is impossible to tell.",
-            "The Wounded Figure: A figure is slumped against your doorframe, one arm clutched tightly to their side. The rain darkens a patch on their jacket, but the low-res camera can't distinguish if it's water or something else leaking out.",
-            "The Courier: A slim figure holds a metallic datapad case against their chest, protecting it from the rain. They keep glancing up and down the alley, their posture tense and alert as if expecting trouble.",
-            "The Small Silhouette: A much smaller, slighter figure stands under your awning, almost swallowed by a rain poncho that's too big for them. Their face is hidden in the deep shadow of the hood, and they haven't moved an inch.",
-            "The Glitching Image: The figure is hard to make out, as your camera feed crackles and distorts whenever they move. Something they're carrying, or perhaps something inside them, is putting out a powerful interference signal.",
-            "The Heavily Augmented: This one is covered in chrome. One of their optic sensors glows with a faint blue light, cutting through the rain. Their movements are stiff and precise as they raise a metallic hand to knock again.",
-            "The Official: Their jacket bears the faded logo of a city maintenance crew. They have a heavy tool belt, but their face is passive, their eyes fixed directly on your camera lens with an unnerving lack of emotion.",
-            "The Sound at the Door: You can barely see them through the sheeting rain, but you can hear a faint, rhythmic tapping against the metal. It's too soft to be aggressive, more like a desperate, fading plea for entry.",
-            "The Uncanny Face: The person leans in close to the camera, their face illuminated by your \"active\" light. It's drenched and pale, with an expression that's perfectly neutral. No fear, no anger, just... waiting. An alert flashes on your console: BIOMETRIC SCAN INCONCLUSIVE."
+            "A figure, hunched against the rain, a faint, rhythmic pulse of light coming from a cybernetic eye.",
+            "The camera shows someone wrapped in rags, face obscured by shadow. A metallic hand, fingers twitching, is all you can see of them.",
+            "A silhouette flickers on the feed, static distorting their form. They seem to be shivering, or perhaps it's a malfunction in their chrome.",
+            "Someone stands perfectly still in the downpour. Almost too still. A chrome jaw, catching the neon light, is the only part of their face you can make out.",
+            "The Corporate Drone: Through the static, you see a figure in a clean, corporate-style trench coat, collar turned up. Their eyes glow with a faint, corporate-blue light.",
+            "The Scavenger: The camera shows a person burdened by a heavy, overflowing pack. A mess of cables and salvaged tech hangs from it, some of it plugged directly into their skull.",
+            "The Wounded Figure: A figure is slumped against your doorframe, one arm a mess of exposed wires and leaking hydraulic fluid.",
+            "The Courier: A slim figure holds a metallic datapad case against their chest. Their legs are chrome, sleek and built for speed.",
+            "The Small Silhouette: A much smaller, slighter figure stands under your awning, almost swallowed by a rain poncho that's too big for them. A single, red optic glows from under the hood.",
+            "The Glitching Image: The figure is hard to make out, as your camera feed crackles and distorts whenever they move. They seem to be heavily augmented, the interference coming from their own body.",
+            "The Heavily Augmented: This one is more machine than person. Their face is a blank, chrome mask, and their arms are a mismatched collection of salvaged parts.",
+            "The Official: Their jacket bears the faded logo of a city maintenance crew. One of their arms is a heavy, industrial tool, and their voice, when they speak, is a distorted buzz.",
+            "The Sound at the Door: You can barely see them through the sheeting rain, but you can hear a faint, rhythmic tapping against the metal. It's the sound of a chrome finger, tapping out a desperate morse code.",
+            "The Uncanny Face: The person leans in close to the camera, their face illuminated by your \"active\" light. It's drenched and pale, with an expression that's perfectly neutral. Their eyes, however, are a pair of mismatched, cybernetic lenses.",
+            "A street samurai, their chrome katana glinting in the rain, stands at your door. They are missing an arm, the socket sparking in the downpour.",
+            "A joy-girl, her face a canvas of shifting LED tattoos, shivers in the cold. Her chrome legs are scarred and dented.",
+            "A child, no older than 10, stands in the rain. Their right arm is a crude, robotic prosthetic, and they are holding a single, wilted flower."
         ];
 
         const GUILT_THRESHOLD = 3;

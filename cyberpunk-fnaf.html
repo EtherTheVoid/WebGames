@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberNight: Arasaka's Ghost</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --neon-blue: #00ffff;
+            --neon-red: #ff00ff;
+            --neon-green: #39ff14;
+            --background-dark: #0d0d1a;
+            --text-color: #e0e0e0;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'VT323', monospace;
+            background-color: var(--background-dark);
+            color: var(--text-color);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue);
+        }
+        
+        .glitch {
+            animation: glitch 1.5s linear infinite;
+        }
+
+        @keyframes glitch {
+            2%, 64% {
+                transform: translate(2px, 0) skew(0deg);
+            }
+            4%, 60% {
+                transform: translate(-2px, 0) skew(0deg);
+            }
+            62% {
+                transform: translate(0, 0) skew(5deg);
+            }
+        }
+
+        .glitch.glitch-2 {
+            animation: glitch-2 1.5s linear infinite;
+        }
+
+        @keyframes glitch-2 {
+            2%, 64% {
+                transform: translate(0, 2px) skew(0deg);
+            }
+            4%, 60% {
+                transform: translate(0, -2px) skew(0deg);
+            }
+            62% {
+                transform: translate(0, 0) skew(0deg);
+            }
+        }
+        
+        .cyber-button {
+            background-color: transparent;
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 8px 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-blue) inset;
+        }
+
+        .cyber-button:hover, .cyber-button.active {
+            background-color: var(--neon-blue);
+            color: var(--background-dark);
+            box-shadow: 0 0 20px var(--neon-blue);
+            text-shadow: none;
+        }
+
+        .cyber-button:disabled {
+            border-color: var(--border-color);
+            color: var(--border-color);
+            cursor: not-allowed;
+            box-shadow: none;
+            text-shadow: none;
+        }
+
+        #camera-feed.blackwall-active {
+            animation: blackwall-glitch 0.5s linear infinite, screen-shake 0.2s linear infinite;
+        }
+
+        @keyframes blackwall-glitch {
+            0% { filter: hue-rotate(0deg) brightness(1); }
+            50% { filter: hue-rotate(180deg) brightness(2); }
+            100% { filter: hue-rotate(360deg) brightness(1); }
+        }
+
+        @keyframes screen-shake {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(5px, 5px); }
+            50% { transform: translate(-5px, -5px); }
+            75% { transform: translate(5px, -5px); }
+        }
+
+        #psychosis-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,0,255,0.5) 0%, rgba(0,0,0,0.8) 70%);
+            z-index: 100;
+            animation: psychosis-pulse 1s infinite, psychosis-distortion 5s linear infinite alternate;
+            display: none;
+            pointer-events: none;
+        }
+
+        @keyframes psychosis-pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes psychosis-distortion {
+            from {
+                filter: hue-rotate(0deg) contrast(200%) saturate(200%);
+            }
+            to {
+                filter: hue-rotate(360deg) contrast(150%) saturate(150%);
+            }
+        }
+        
+        .map-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--neon-red);
+            box-shadow: 0 0 10px var(--neon-red);
+            transition: top 1s linear, left 1s linear;
+        }
+        .map-dot.pinged {
+            background-color: var(--neon-green);
+            box-shadow: 0 0 20px var(--neon-green);
+            animation: ping-pulse 1s infinite;
+        }
+        @keyframes ping-pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-cyan-300">
+
+    <div id="game-container" class="w-full h-full max-w-7xl mx-auto p-4 flex flex-col items-center justify-center">
+
+        <!-- Start Screen -->
+        <div id="start-screen" class="text-center space-y-6">
+            <h1 class="text-6xl font-bold glitch glitch-2 text-cyan-300" style="text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;">CyberNight</h1>
+            <h2 class="text-2xl text-fuchsia-400">Arasaka's Ghost</h2>
+            <div id="fixer-message-container" class="w-full max-w-2xl p-4 border-2 border-fuchsia-400 bg-black bg-opacity-50 rounded-lg">
+                <p class="text-fuchsia-400 text-lg">&lt;CIPHER&gt;</p>
+                <p id="fixer-message" class="text-lg whitespace-pre-wrap"></p>
+            </div>
+            <button id="start-button" class="cyber-button text-2xl">Jack In</button>
+        </div>
+
+        <!-- Main Game UI -->
+        <div id="main-game" class="hidden w-full h-full grid grid-cols-3 grid-rows-3 gap-4">
+            <!-- Header -->
+            <div class="col-span-3 row-span-1 grid grid-cols-3 gap-4 p-2 border-2 border-cyan-400 bg-black bg-opacity-30 rounded-lg">
+                <div class="flex flex-col justify-center items-center">
+                    <h2 class="text-2xl text-fuchsia-400">NIGHT <span id="night-number">1</span></h2>
+                    <p class="text-4xl" id="game-clock">12:00 AM</p>
+                </div>
+                <div class="flex flex-col justify-center items-center">
+                    <h2 class="text-2xl text-green-400">MAINFRAME INTEGRITY</h2>
+                    <div class="w-full bg-gray-700 h-8 border-2 border-green-400 rounded-sm">
+                        <div id="mainframe-integrity-bar" class="bg-green-400 h-full" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="flex flex-col justify-center items-center">
+                    <h2 class="text-2xl text-cyan-400">CYBERDECK RAM</h2>
+                    <div class="w-full bg-gray-700 h-8 border-2 border-cyan-400 rounded-sm">
+                        <div id="ram-bar" class="bg-cyan-400 h-full transition-all duration-300" style="width: 100%;"></div>
+                    </div>
+                    <p id="ram-value" class="text-xl">100 / 100</p>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-span-2 row-span-2 grid grid-cols-2 gap-4">
+                 <!-- Camera Feed -->
+                <div class="col-span-2 p-2 border-2 border-cyan-400 bg-black bg-opacity-30 rounded-lg relative">
+                    <div id="camera-feed" class="w-full h-full bg-black flex items-center justify-center bg-cover bg-center" style="background-image: url('https://placehold.co/800x600/000000/39ff14?text=CAM_OFFLINE');">
+                        <p id="camera-name" class="absolute top-2 left-2 text-2xl bg-black bg-opacity-50 p-2 rounded">CAM 01: SERVER ROOM</p>
+                        <div id="blackwall-face" class="hidden w-3/4 h-3/4 text-6xl text-red-500 flex items-center justify-center font-mono animate-pulse">
+                            &lt;BREACH DETECTED&gt;
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Panel -->
+            <div class="col-span-1 row-span-2 grid grid-rows-2 gap-4">
+                <!-- Map -->
+                <div class="p-2 border-2 border-cyan-400 bg-black bg-opacity-30 rounded-lg relative">
+                    <h3 class="text-xl text-center text-fuchsia-400">FACILITY MAP</h3>
+                    <div id="map" class="w-full h-4/5 bg-gray-800 bg-opacity-50 mt-2 relative border border-gray-500">
+                        <!-- Camera Buttons -->
+                        <button class="absolute map-camera-btn cyber-button" data-cam="1" style="left: 10%; top: 15%;">CAM 1</button>
+                        <button class="absolute map-camera-btn cyber-button" data-cam="2" style="left: 40%; top: 15%;">CAM 2</button>
+                        <button class="absolute map-camera-btn cyber-button" data-cam="3" style="left: 70%; top: 15%;">CAM 3</button>
+                        <button class="absolute map-camera-btn cyber-button" data-cam="4" style="left: 25%; top: 50%;">CAM 4</button>
+                        <button class="absolute map-camera-btn cyber-button" data-cam="5" style="left: 55%; top: 50%;">CAM 5</button>
+                        <button class="absolute map-camera-btn cyber-button" data-cam="6" style="left: 40%; top: 80%;">YOU</button>
+                        <!-- Door Buttons -->
+                        <button class="door-lock-btn absolute w-4 h-8 bg-cyan-500 border-2 border-cyan-200" data-door="left" style="left: 15%; top: 75%;"></button>
+                        <button class="door-lock-btn absolute w-4 h-8 bg-cyan-500 border-2 border-cyan-200" data-door="right" style="left: 65%; top: 75%;"></button>
+                         <!-- Enemy Dots -->
+                        <div id="maelstrom-dot" class="map-dot hidden"></div>
+                        <div id="construct-dot" class="map-dot hidden"></div>
+                    </div>
+                </div>
+                <!-- Quickhacks -->
+                <div class="p-2 border-2 border-cyan-400 bg-black bg-opacity-30 rounded-lg flex flex-col justify-around">
+                    <h3 class="text-xl text-center text-fuchsia-400">QUICKHACKS</h3>
+                    <button id="quickhack-lockdown" class="cyber-button w-full">SYSTEM: LOCKDOWN (25 RAM)</button>
+                    <button id="quickhack-distract" class="cyber-button w-full">DISTRACT ENEMIES (15 RAM)</button>
+                    <button id="quickhack-ping" class="cyber-button w-full">PING (40 RAM)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- End Screen -->
+        <div id="end-screen" class="hidden text-center space-y-6">
+             <h1 id="end-title" class="text-6xl font-bold glitch text-red-500">FLATLINED</h1>
+            <div id="bd-shard-container" class="w-full max-w-2xl p-4 border-2 border-green-400 bg-black bg-opacity-50 rounded-lg">
+                <p class="text-green-400 text-lg">&lt;CORRUPTED BD SHARD&gt;</p>
+                <p id="bd-shard-content" class="text-lg whitespace-pre-wrap"></p>
+            </div>
+            <button id="next-night-button" class="cyber-button text-2xl">Continue</button>
+        </div>
+        
+        <!-- Psychosis Overlay -->
+        <div id="psychosis-overlay"></div>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const startScreen = document.getElementById('start-screen');
+        const mainGame = document.getElementById('main-game');
+        const endScreen = document.getElementById('end-screen');
+        const startButton = document.getElementById('start-button');
+        const nextNightButton = document.getElementById('next-night-button');
+
+        // Game state
+        let currentNight = 1;
+        let gameTime = 0; // in seconds, 12 AM is 0, 6 AM is 360
+        let ram = 100;
+        let maxRam = 100;
+        let mainframeIntegrity = 100;
+        let ramRegenRate = 0.5; // RAM per second
+        let gameInterval;
+        let activeCamera = 1;
+        
+        // UI Elements
+        const nightNumberEl = document.getElementById('night-number');
+        const gameClockEl = document.getElementById('game-clock');
+        const mainframeIntegrityBar = document.getElementById('mainframe-integrity-bar');
+        const ramBar = document.getElementById('ram-bar');
+        const ramValueEl = document.getElementById('ram-value');
+        const cameraFeed = document.getElementById('camera-feed');
+        const cameraNameEl = document.getElementById('camera-name');
+        const psychosisOverlay = document.getElementById('psychosis-overlay');
+        const fixerMessageEl = document.getElementById('fixer-message');
+
+        const quickhackLockdownBtn = document.getElementById('quickhack-lockdown');
+        const quickhackDistractBtn = document.getElementById('quickhack-distract');
+        const quickhackPingBtn = document.getElementById('quickhack-ping');
+        
+        const doorButtons = document.querySelectorAll('.door-lock-btn');
+        let leftDoorLocked = false;
+        let rightDoorLocked = false;
+        let leftDoorLockTimer;
+        let rightDoorLockTimer;
+
+        // Threat data
+        const maelstrom = {
+            name: "Maelstrom Cyberpsycho",
+            location: 'cam2',
+            path: ['cam2', 'cam3', 'cam5', 'right_door', 'player'],
+            currentPathIndex: 0,
+            moveChance: 0.1, // per tick
+            distracted: false,
+            dot: document.getElementById('maelstrom-dot'),
+        };
+
+        const blackwall = {
+            name: "Blackwall Anomaly",
+            active: false,
+            camera: null,
+            appearChance: 0.05, // per tick
+            drainAmount: 30,
+            timeout: null,
+            faceEl: document.getElementById('blackwall-face')
+        };
+        
+        const construct = {
+            name: "Arasaka Construct",
+            location: 'cam1',
+            path: ['cam1', 'cam4', 'left_door', 'player'],
+            currentPathIndex: 0,
+            moveChance: 0.08, // per tick when not being watched
+            dot: document.getElementById('construct-dot'),
+        };
+
+        const cameraData = {
+            1: { name: "CAM 01: ARCHIVE HALL", image: "https://placehold.co/800x600/0d0d1a/00ffff?text=ARCHIVES" },
+            2: { name: "CAM 02: EAST CORRIDOR", image: "https://placehold.co/800x600/0d0d1a/00ffff?text=EAST+CORRIDOR" },
+            3: { name: "CAM 03: MAINTENANCE", image: "https://placehold.co/800x600/0d0d1a/00ffff?text=MAINTENANCE" },
+            4: { name: "CAM 04: WEST CORRIDOR", image: "https://placehold.co/800x600/0d0d1a/00ffff?text=WEST+CORRIDOR" },
+            5: { name: "CAM 05: SERVER HUB", image: "https://placehold.co/800x600/0d0d1a/00ffff?text=SERVER+HUB" },
+            6: { name: "CAM 06: YOUR OFFICE", image: "https://placehold.co/800x600/0d0d1a/39ff14?text=CONTROL+ROOM" },
+        };
+
+        const mapPositions = {
+            cam1: { top: '15%', left: '10%' },
+            cam2: { top: '15%', left: '40%' },
+            cam3: { top: '15%', left: '70%' },
+            cam4: { top: '50%', left: '25%' },
+            cam5: { top: '50%', left: '55%' },
+            left_door: { top: '80%', left: '25%' },
+            right_door: { top: '80%', left: '55%' },
+        };
+        
+        const fixerMessages = [
+            "Got a gig, choom. Arasaka black site, old-gen. They left something behind in the mainframe. I need you to keep the local network online long enough for my daemon to crack the vault. Just monitor the system, keep the ICE from freezing you out. Easy eddies. What could go wrong?",
+            "Night two. My daemon is making progress, but it's stirring things up. The residual constructs in there are getting agitated. Stay frosty. Don't let them sever your connection.",
+            "You're halfway there. The fortress is fighting back now. It knows we're here. I'm detecting heavy-duty countermeasures. The Blackwall anomaly is more... aggressive. Be careful what you stare at.",
+            "Almost there, choom. The data vault is screaming. The ghost in the machine is getting desperate. It will do anything to stop you. Don't let it get in your head. Literally.",
+            "Final night. This is it. One last push. The system is unstable, RAM is probably leaking all over the place. Survive till dawn and you're chrome-plated rich. Fail, and you're just another ghost. Good luck."
+        ];
+        
+        const bdShards = [
+            "BD_Shard_734.log\n\nAUDIO: Heavy breathing. \"Okay... first night. Just... watch the cameras. Easy. That static... it's just the old system, right? ...Right?\"",
+            "BD_Shard_734.log\n\nAUDIO: Clanging metal. \"What was that? It's in the vents... I swear it's in the vents. The lockdown... it's not holding! Oh god-\" *Static hiss*",
+            "BD_Shard_734.log\n\nTEXT: \"The face... I see the face in the code. It keeps draining my deck. I can't think... my chrome feels cold. It's inside my head...\"",
+            "BD_Shard_734.log\n\nAUDIO: Whispering. Faint, layered voices. \"...He's always watching. Even when you're not... he's there. The man in the suit. He just... stands there. Waiting. He's at the door. I can't look away-\" *A soft chime, followed by a flatline tone.*",
+            "BD_Shard_801.log\n\nAUDIO: Calm, collected voice. \"Subarashii. Another one for the collection. Their fear provides such... rich data. The construct is satisfied. The fortress is secure. Arasaka thanks you for your contribution.\" *End of log.*"
+        ];
+        
+        // --- Game Flow ---
+        function init() {
+            startButton.addEventListener('click', startGame);
+            nextNightButton.addEventListener('click', () => {
+                if(currentNight > 5){
+                     location.reload();
+                } else {
+                     setupNight(currentNight);
+                }
+            });
+            setupNight(currentNight, true);
+        }
+        
+        function setupNight(night, isFirst = false) {
+            currentNight = night;
+            nightNumberEl.textContent = currentNight;
+            gameTime = 0;
+            ram = 100;
+            mainframeIntegrity = 100;
+            
+            // Reset threats
+            maelstrom.currentPathIndex = 0;
+            maelstrom.location = maelstrom.path[0];
+            construct.currentPathIndex = 0;
+            construct.location = construct.path[0];
+            
+            updateUI();
+            
+            if(isFirst){
+                fixerMessageEl.textContent = fixerMessages[currentNight - 1];
+            } else {
+                 startScreen.querySelector('h1').textContent = `NIGHT ${currentNight}`;
+                 startScreen.querySelector('h2').style.display = 'none';
+                 fixerMessageEl.textContent = fixerMessages[currentNight - 1];
+                 startScreen.style.display = 'block';
+                 mainGame.style.display = 'none';
+                 endScreen.style.display = 'none';
+            }
+        }
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            mainGame.style.display = 'grid';
+            endScreen.style.display = 'none';
+            
+            switchCamera(1);
+            gameInterval = setInterval(gameLoop, 1000);
+        }
+        
+        function gameLoop() {
+            gameTime++;
+            
+            // Update RAM
+            ram = Math.min(maxRam, ram + ramRegenRate);
+
+            // Update threat logic
+            moveMaelstrom();
+            moveConstruct();
+            handleBlackwall();
+
+            updateUI();
+
+            if (gameTime >= 360) {
+                winNight();
+            }
+        }
+
+        function winNight() {
+            clearInterval(gameInterval);
+            document.getElementById('end-title').textContent = "CONNECTION STABLE";
+            document.getElementById('end-title').classList.remove('text-red-500');
+            document.getElementById('end-title').classList.add('text-green-400');
+            document.getElementById('bd-shard-content').textContent = bdShards[currentNight - 1];
+            
+            currentNight++;
+            if (currentNight > 5) {
+                nextNightButton.textContent = "Restart";
+                 document.getElementById('bd-shard-content').textContent += "\n\nCongratulations. You survived. The eddies are on their way. - Cipher";
+            } else {
+                 nextNightButton.textContent = `Start Night ${currentNight}`;
+            }
+            
+            mainGame.style.display = 'none';
+            endScreen.style.display = 'block';
+        }
+
+        function gameOver(reason) {
+            clearInterval(gameInterval);
+            document.getElementById('end-title').textContent = "FLATLINED";
+            document.getElementById('end-title').classList.remove('text-green-400');
+            document.getElementById('end-title').classList.add('text-red-500');
+            document.getElementById('bd-shard-content').textContent = `Reason: ${reason}`;
+            nextNightButton.textContent = "Retry";
+            mainGame.style.display = 'none';
+            endScreen.style.display = 'block';
+        }
+
+
+        // --- UI Updates ---
+        function updateUI() {
+            // Clock
+            const hours = Math.floor(gameTime / 60) + 12;
+            const displayHours = hours > 12 ? hours - 12 : hours;
+            const minutes = (gameTime % 60).toString().padStart(2, '0');
+            gameClockEl.textContent = `${displayHours === 0 ? 12 : displayHours}:${minutes} AM`;
+            
+            // Bars
+            ramBar.style.width = `${(ram / maxRam) * 100}%`;
+            ramValueEl.textContent = `${Math.floor(ram)} / ${maxRam}`;
+            mainframeIntegrityBar.style.width = `${mainframeIntegrity}%`;
+            
+            // Quickhack buttons
+            quickhackLockdownBtn.disabled = ram < 25;
+            quickhackDistractBtn.disabled = ram < 15;
+            quickhackPingBtn.disabled = ram < 40;
+            
+             // Dots
+            updateDot(maelstrom);
+            updateDot(construct);
+        }
+        
+        function updateDot(threat) {
+            if (mapPositions[threat.location]) {
+                threat.dot.style.display = 'block';
+                threat.dot.style.top = mapPositions[threat.location].top;
+                threat.dot.style.left = mapPositions[threat.location].left;
+            } else {
+                threat.dot.style.display = 'none';
+            }
+        }
+
+        function switchCamera(camId) {
+            if (blackwall.active && blackwall.camera === activeCamera) {
+                // Player successfully avoided blackwall
+                clearTimeout(blackwall.timeout);
+                blackwall.active = false;
+                blackwall.faceEl.style.display = 'none';
+                cameraFeed.classList.remove('blackwall-active');
+            }
+
+            activeCamera = camId;
+            const cam = cameraData[camId];
+            cameraFeed.style.backgroundImage = `url('${cam.image}')`;
+            cameraNameEl.textContent = cam.name;
+
+            document.querySelectorAll('.map-camera-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.map-camera-btn[data-cam='${camId}']`).classList.add('active');
+            
+            // Check if Blackwall should appear now
+            if(blackwall.active && blackwall.camera === activeCamera){
+                 cameraFeed.classList.add('blackwall-active');
+                 blackwall.faceEl.style.display = 'flex';
+            }
+        }
+        
+        document.querySelectorAll('.map-camera-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchCamera(parseInt(btn.dataset.cam)));
+        });
+
+        // --- Threat Logic ---
+        function moveMaelstrom() {
+            if (maelstrom.distracted) {
+                maelstrom.distracted = false;
+                maelstrom.currentPathIndex = 0;
+                maelstrom.location = maelstrom.path[0];
+                return;
+            }
+
+            if (Math.random() < maelstrom.moveChance * (1 + currentNight * 0.2)) {
+                maelstrom.currentPathIndex++;
+                const nextLocation = maelstrom.path[maelstrom.currentPathIndex];
+                maelstrom.location = nextLocation;
+
+                if (nextLocation === 'right_door' && rightDoorLocked) {
+                    maelstrom.currentPathIndex--; // Blocked by door
+                    maelstrom.location = maelstrom.path[maelstrom.currentPathIndex];
+                } else if (nextLocation === 'player') {
+                    gameOver("Maelstrom Cyberpsycho breached your control room.");
+                }
+            }
+        }
+
+        function moveConstruct() {
+             if (`cam${activeCamera}` === construct.location) {
+                return; // Can't move while being watched
+            }
+
+            if (Math.random() < construct.moveChance * (1 + currentNight * 0.2)) {
+                construct.currentPathIndex++;
+                const nextLocation = construct.path[construct.currentPathIndex];
+                construct.location = nextLocation;
+
+                if (nextLocation === 'left_door' && leftDoorLocked) {
+                    construct.currentPathIndex--; // Blocked
+                    construct.location = construct.path[construct.currentPathIndex];
+                } else if (nextLocation === 'player') {
+                    triggerPsychosis();
+                    // Reset position after attack
+                    construct.currentPathIndex = 0;
+                    construct.location = construct.path[0];
+                }
+            }
+        }
+        
+        function handleBlackwall() {
+            if (!blackwall.active && Math.random() < blackwall.appearChance * (1 + currentNight * 0.2)) {
+                blackwall.active = true;
+                // Pick a random camera that ISN'T the player's office
+                blackwall.camera = Math.floor(Math.random() * 5) + 1; 
+
+                // If it appears on the active camera, show it immediately
+                if (blackwall.camera === activeCamera) {
+                    cameraFeed.classList.add('blackwall-active');
+                    blackwall.faceEl.style.display = 'flex';
+                }
+
+                blackwall.timeout = setTimeout(() => {
+                    if (blackwall.active && blackwall.camera === activeCamera) {
+                        ram = Math.max(0, ram - blackwall.drainAmount);
+                        // Disable camera for a bit? For now just drain RAM.
+                        blackwall.active = false;
+                        blackwall.faceEl.style.display = 'none';
+                        cameraFeed.classList.remove('blackwall-active');
+                    }
+                }, 3000); // 3 seconds to react
+            }
+        }
+        
+        function triggerPsychosis() {
+            psychosisOverlay.style.display = 'block';
+            mainGame.style.filter = 'blur(5px)';
+            // Disable controls
+            document.querySelectorAll('button').forEach(b => b.disabled = true);
+
+            setTimeout(() => {
+                psychosisOverlay.style.display = 'none';
+                mainGame.style.filter = 'none';
+                updateUI(); // Re-enable buttons based on RAM
+            }, 5000); // 5 seconds of psychosis
+        }
+        
+        // --- Quickhacks Logic ---
+        function useRam(cost) {
+            if (ram >= cost) {
+                ram -= cost;
+                updateUI();
+                return true;
+            }
+            return false;
+        }
+        
+        quickhackLockdownBtn.addEventListener('click', () => {
+             // Simple implementation: locks both doors
+             if (useRam(25)) {
+                 lockDoor('left', 10000);
+                 lockDoor('right', 10000);
+             }
+        });
+
+        function lockDoor(door, duration) {
+            const btn = document.querySelector(`.door-lock-btn[data-door='${door}']`);
+            if (door === 'left') {
+                if (leftDoorLocked) return;
+                leftDoorLocked = true;
+                btn.style.backgroundColor = 'var(--neon-red)';
+                clearTimeout(leftDoorLockTimer);
+                leftDoorLockTimer = setTimeout(() => {
+                    leftDoorLocked = false;
+                    btn.style.backgroundColor = 'var(--neon-blue)';
+                }, duration);
+            } else {
+                if (rightDoorLocked) return;
+                rightDoorLocked = true;
+                btn.style.backgroundColor = 'var(--neon-red)';
+                clearTimeout(rightDoorLockTimer);
+                rightDoorLockTimer = setTimeout(() => {
+                    rightDoorLocked = false;
+                    btn.style.backgroundColor = 'var(--neon-blue)';
+                }, duration);
+            }
+        }
+
+        quickhackDistractBtn.addEventListener('click', () => {
+            if (useRam(15)) {
+                maelstrom.distracted = true;
+            }
+        });
+        
+        quickhackPingBtn.addEventListener('click', () => {
+            if (useRam(40)) {
+                maelstrom.dot.classList.add('pinged');
+                construct.dot.classList.add('pinged');
+                setTimeout(() => {
+                    maelstrom.dot.classList.remove('pinged');
+                    construct.dot.classList.remove('pinged');
+                }, 5000); // Ping lasts 5 seconds
+            }
+        });
+        
+        init();
+    </script>
+</body>
+</html>
