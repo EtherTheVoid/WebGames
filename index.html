@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRIDRUNNER ARCADE</title>
+    <title>GRIDRUNNER ARCADE // JOB BOARD</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,45 +12,29 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Orbitron:wght@700;900&display=swap"
+        rel="stylesheet">
 
 
     <style>
-        /* ========================================
-        CORE STYLES INSPIRED BY CYBERPUNK 2077 UI
-        ========================================
-        */
-
         :root {
-            --cyber-cyan: #00f6ff;
             --cyber-red: #ff3c3c;
-            --cyber-yellow: #f0ff00;
-            --cyber-magenta: #ff00ff;
             --dark-background: #01040a;
-            --ui-background: rgba(13, 33, 41, 0.9);
-            --border-color: rgba(0, 246, 255, 0.3);
         }
 
         body {
             background-color: var(--dark-background);
-            /* Gradient is now a fallback, main bg is the canvas */
-            background-image: radial-gradient(ellipse at center, rgba(80, 0, 120, 0.2) 0%, transparent 60%);
+            background-image: radial-gradient(ellipse at center, rgba(120, 0, 0, 0.2) 0%, transparent 60%);
             font-family: 'Rajdhani', sans-serif;
             color: #e0e0e0;
-            overflow: auto; /* Prevent scrollbars from canvas */
+            overflow: auto;
         }
 
-        /* Set custom fonts */
         .font-orbitron {
             font-family: 'Orbitron', sans-serif;
         }
 
-        .font-rajdhani {
-            font-family: 'Rajdhani', sans-serif;
-        }
-
-        /* Background Canvas Styling */
-        #wave-background-container {
+        #matrix-background {
             position: fixed;
             top: 0;
             left: 0;
@@ -58,11 +42,11 @@
             height: 100vh;
             z-index: 0;
         }
+
         canvas {
             display: block;
         }
 
-        /* Scanlines overlay effect */
         .scanlines {
             position: fixed;
             top: 0;
@@ -80,29 +64,17 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: repeating-linear-gradient(0deg,
-                    rgba(0, 0, 0, 0.5),
-                    rgba(0, 0, 0, 0.5) 1px,
-                    transparent 1px,
-                    transparent 4px);
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) 1px, transparent 1px, transparent 4px);
             opacity: 0.4;
-            animation: scanline-flicker 15s linear infinite;
         }
 
-        @keyframes scanline-flicker {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(2px); }
-            100% { transform: translateY(0); }
-        }
-        
-        /* Version info text at corners */
         .version-info {
             position: fixed;
             bottom: 1rem;
             right: 1.5rem;
             font-family: 'Orbitron', sans-serif;
             font-size: 0.75rem;
-            color: rgba(224, 224, 224, 0.3);
+            color: rgba(255, 60, 60, 0.3);
             writing-mode: vertical-rl;
             text-orientation: mixed;
             letter-spacing: 2px;
@@ -110,131 +82,90 @@
             z-index: 50;
         }
 
-         .top-left-info {
+        .top-left-info {
             position: fixed;
             top: 1rem;
             left: 1.5rem;
             font-family: 'Orbitron', sans-serif;
             font-size: 0.75rem;
-            color: rgba(224, 224, 224, 0.3);
+            color: rgba(255, 60, 60, 0.3);
             letter-spacing: 2px;
             pointer-events: none;
             z-index: 50;
         }
 
-        /* Neon glow effect for the main title */
-        .neon-cyan-glow {
-            color: var(--cyber-cyan);
-            text-shadow:
-                0 0 5px var(--cyber-cyan),
-                0 0 10px var(--cyber-cyan),
-                0 0 20px var(--cyber-cyan),
-                0 0 40px #00a1a8;
+        .neon-red-glow {
+            color: var(--cyber-red);
+            text-shadow: 0 0 5px var(--cyber-red), 0 0 10px var(--cyber-red), 0 0 20px var(--cyber-red), 0 0 40px #a80000;
         }
 
-        /* Flickering/glitch animation for the tagline */
         .glitch-text {
-            animation: glitch 2.5s linear infinite alternate-reverse;
+            animation: glitch 3s linear infinite alternate-reverse;
         }
 
         @keyframes glitch {
-            0%, 100% { opacity: 1; text-shadow: 0 0 2px #e0e0e0; }
-            48% { opacity: 1; }
-            50% { opacity: 0.6; transform: translateX(2px); text-shadow: 1px 1px 2px var(--cyber-red); }
-            52% { opacity: 1; transform: translateX(0); }
-            68% { opacity: 1; }
-            70% { opacity: 0.7; transform: translateX(-2px); text-shadow: -1px -1px 2px var(--cyber-cyan); }
-            72% { opacity: 1; transform: translateX(0); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; transform: translateX(1px) skew(-1deg); }
+            52% { opacity: 1; transform: translateX(0) skew(0); }
+            70% { opacity: 0.8; transform: translateX(-1px) skew(1deg); }
+            72% { opacity: 1; transform: translateX(0) skew(0); }
         }
 
-        /* ========================================
-        GAME CARD STYLING
-        ========================================
-        */
-        .game-card {
-            background: var(--ui-background);
-            border: 1px solid; /* Border color will be set by modifier classes */
-            transition: all 0.3s ease-in-out;
-            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+        .mission-list-container {
+            border: 1px solid rgba(255, 60, 60, 0.3);
+            padding: 0.5rem;
+            background: rgba(255, 60, 60, 0.05);
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
         }
 
-        .game-card .launch-button {
-            opacity: 0;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            transform: translateY(10px);
+        .mission-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border: 1px solid transparent;
+            background-color: rgba(255, 60, 60, 0.1);
+            color: #e0e0e0;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%);
         }
 
-        .game-card:hover .launch-button {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .game-card:hover {
-            transform: translateY(-8px);
-        }
-
-        .game-card:hover .game-title {
-             text-shadow: 0 0 8px; /* Shadow color inherited */
-        }
-
-        /* === Card Hue Modifiers === */
-        .card-hue-red { 
-            border-color: rgba(255, 60, 60, 0.4);
-        }
-        .card-hue-red:hover {
+        .mission-item:hover {
+            background-color: rgba(255, 60, 60, 0.25);
             border-color: var(--cyber-red);
-            box-shadow: 0 0 20px rgba(255, 60, 60, 0.4), inset 0 0 10px rgba(255, 60, 60, 0.2);
+            transform: translateX(4px);
         }
-        .card-hue-red:hover .game-title { color: var(--cyber-red); }
 
-        .card-hue-cyan {
-            border-color: var(--border-color);
-        }
-        .card-hue-cyan:hover {
-            border-color: var(--cyber-cyan);
-            box-shadow: 0 0 20px rgba(0, 246, 255, 0.4), inset 0 0 10px rgba(0, 246, 255, 0.2);
-        }
-        .card-hue-cyan:hover .game-title { color: var(--cyber-cyan); }
-
-        .card-hue-yellow {
-            border-color: rgba(240, 255, 0, 0.4);
-        }
-        .card-hue-yellow:hover {
-            border-color: var(--cyber-yellow);
-            box-shadow: 0 0 20px rgba(240, 255, 0, 0.4), inset 0 0 10px rgba(240, 255, 0, 0.2);
-        }
-        .card-hue-yellow:hover .game-title { color: var(--cyber-yellow); }
-
-        .launch-button {
-            background-color: transparent;
-            border: 1px solid var(--cyber-yellow);
-            color: var(--cyber-yellow);
-            text-shadow: 0 0 5px var(--cyber-yellow);
+        .mission-title {
+            font-family: 'Orbitron', sans-serif;
             font-weight: 700;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+            font-size: 1.25rem;
+            color: var(--cyber-red);
+            text-shadow: 0 0 5px var(--cyber-red);
+            margin-bottom: 0.25rem;
+            transition: all 0.2s ease;
+        }
+        .mission-item:hover .mission-title {
+            color: #fff;
+            text-shadow: 0 0 8px #fff;
         }
 
-        .launch-button:hover {
-            background-color: rgba(240, 255, 0, 0.15);
-            box-shadow: 0 0 15px var(--cyber-yellow);
+        .mission-details {
+            font-size: 1rem;
+            color: #a0a0a0;
         }
 
-        .game-card img {
-            transition: filter 0.3s ease;
+        .mission-status span {
+            font-size: 2.5rem;
+            line-height: 1;
+            color: var(--cyber-red);
+            transition: transform 0.3s ease, text-shadow 0.3s ease;
         }
 
-        .game-card:hover img {
-            filter: brightness(0.6);
-        }
-        
-        .game-title-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(to top, rgba(1, 4, 10, 0.95), transparent);
+        .mission-item:hover .mission-status span {
+            transform: scale(1.2) translateX(5px);
+            text-shadow: 0 0 15px var(--cyber-red);
         }
     </style>
 </head>
@@ -242,167 +173,154 @@
 <body>
 
     <!-- Background and Decorative Overlays -->
-    <div id="wave-background-container"></div>
+    <div id="matrix-background"></div>
     <div class="scanlines"></div>
-    <div class="top-left-info">// STATUS: ONLINE</div>
+    <div class="top-left-info">// STATUS: RED.ACT_JOBS</div>
     <div class="version-info">// SYS_VER_2.0.77</div>
 
     <!-- Main Content Wrapper -->
     <div class="relative z-10 flex items-center justify-center min-h-screen p-4 sm:p-6 md:p-8">
-        <div class="container mx-auto text-center w-full">
+        <div class="container mx-auto w-full max-w-4xl">
 
             <!-- Header Section -->
-            <header class="mb-12 md:mb-16">
-                <h1 class="font-orbitron text-5xl md:text-7xl lg:text-8xl font-black uppercase neon-cyan-glow tracking-widest">
-                    Gridrunner Arcade
+            <header class="mb-8 text-center">
+                <h1 class="font-orbitron text-5xl md:text-6xl font-black uppercase neon-red-glow tracking-widest">
+                    JOB BOARD
                 </h1>
-                <p class="font-rajdhani text-lg md:text-xl text-gray-300 mt-4 glitch-text font-bold tracking-wider">
-                    > Jack in. Load up. Game on.
+                <p class="font-rajdhani text-lg md:text-xl text-gray-400 mt-2 glitch-text font-bold tracking-wider">
+                    > Contracts available. Choose your poison.
                 </p>
             </header>
 
-            <!-- Game Selection Grid -->
+            <!-- Game Selection List -->
             <main>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                <div class="mission-list-container">
+                    <div class="space-y-2">
 
-                    <!-- Game Card: Data Heist Slots -->
-                    <a href="cyberpunk-slots.html">
-                        <div class="game-card card-hue-red group relative overflow-hidden cursor-pointer">
-                            <img src="https://placehold.co/600x400/01040a/ff3c3c?text=DATA%20HEIST" alt="Data Heist Slots" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                                <button class="launch-button font-orbitron text-xl py-3 px-6">
-                                    ▶ LAUNCH
-                                </button>
+                        <!-- JOB: GATEKEEPER PROTOCOL -->
+                        <a href="cyberpunk-neon-gate.html" class="mission-item group">
+                            <div class="mission-info">
+                                <h3 class="mission-title">JOB: GATEKEEPER PROTOCOL</h3>
+                                <p class="mission-details">Objective: Guard the gate. Discern human from machine. Trust no one.</p>
                             </div>
-                            <div class="game-title-container">
-                                <h2 class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300 text-left">
-                                    ULTIMATE WINNER</h2>
+                            <div class="mission-status">
+                                <span>›</span>
                             </div>
-                        </div>
-                    </a>
-                    
-                    <!-- Game Card: Neon Noughts & Crosses -->
-                    <a href="cyberpunk-tic-tac-toe.html">
-                        <div class="game-card card-hue-cyan group relative overflow-hidden cursor-pointer">
-                            <img src="https://placehold.co/600x400/01040a/00f6ff?text=NEON%20NOUGHTS" alt="Neon Noughts & Crosses" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                                <button class="launch-button font-orbitron text-xl py-3 px-6">
-                                    ▶ LAUNCH
-                                </button>
-                            </div>
-                            <div class="game-title-container">
-                                <h2 class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300 text-left">
-                                    THE CYBER-DUEL</h2>
-                            </div>
-                        </div>
-                    </a>
+                        </a>
 
-                    <!-- Game Card: CyberSweeper -->
-                    <a href="cyberpunk-mine-sweep.html">
-                        <div class="game-card card-hue-yellow group relative overflow-hidden cursor-pointer">
-                            <img src="https://placehold.co/600x400/01040a/f0ff00?text=CYBERSWEEPER" alt="CyberSweeper" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                                <button class="launch-button font-orbitron text-xl py-3 px-6">
-                                    ▶ LAUNCH
-                                </button>
+                        <!-- JOB: ULTIMATE WINNER -->
+                        <a href="cyberpunk-slots.html" class="mission-item group">
+                            <div class="mission-info">
+                                <h3 class="mission-title">JOB: ULTIMATE WINNER</h3>
+                                <p class="mission-details">Objective: Test your luck against the house. High risk, high reward.</p>
                             </div>
-                            <div class="game-title-container">
-                                <h2 class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300 text-left">
-                                    SKULL CRUSHER</h2>
+                            <div class="mission-status">
+                                <span>›</span>
                             </div>
-                        </div>
-                    </a>
+                        </a>
 
-                    <!-- Game Card: Cyber Snake -->
-                    <a href="cyberpunk-snake.html">
-                        <div class="game-card card-hue-cyan group relative overflow-hidden cursor-pointer">
-                            <img src="https://placehold.co/600x400/01040a/00f6ff?text=CYBER%20SNAKE" alt="Cyber Snake" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                                <button class="launch-button font-orbitron text-xl py-3 px-6">
-                                    ▶ LAUNCH
-                                </button>
+                        <!-- JOB: THE CYBER-DUEL -->
+                        <a href="cyberpunk-tic-tac-toe.html" class="mission-item group">
+                            <div class="mission-info">
+                                <h3 class="mission-title">JOB: THE CYBER-DUEL</h3>
+                                <p class="mission-details">Objective: A classic duel of wits. Outsmart the opposition in a tactical grid combat.</p>
                             </div>
-                            <div class="game-title-container">
-                                <h2 class="game-title font-orbitron text-2xl font-bold text-white transition-colors duration-300 text-left">
-                                    GRID RUNNER</h2>
+                            <div class="mission-status">
+                                <span>›</span>
                             </div>
-                        </div>
-                    </a>
+                        </a>
+
+                        <!-- JOB: SKULL CRUSHER -->
+                        <a href="cyberpunk-mine-sweep.html" class="mission-item group">
+                            <div class="mission-info">
+                                <h3 class="mission-title">JOB: SKULL CRUSHER</h3>
+                                <p class="mission-details">Objective: Navigate a minefield of corrupted data. One wrong move is your last.</p>
+                            </div>
+                            <div class="mission-status">
+                                <span>›</span>
+                            </div>
+                        </a>
+
+                        <!-- JOB: GRID RUNNER -->
+                        <a href="cyberpunk-snake.html" class="mission-item group">
+                            <div class="mission-info">
+                                <h3 class="mission-title">JOB: GRID RUNNER</h3>
+                                <p class="mission-details">Objective: Navigate the data stream. Consume the packets. Don't crash.</p>
+                            </div>
+                            <div class="mission-status">
+                                <span>›</span>
+                            </div>
+                        </a>
+
+                        <!-- JOB: DEATHRACE -->
+                        <a href="cyberpunk-bike.html" class="mission-item group">
+                            <div class="mission-info">
+                                <h3 class="mission-title">JOB: DEATHRACE</h3>
+                                <p class="mission-details">Objective: Survive the highway of death. Outrun the competition, or become roadkill.</p>
+                            </div>
+                            <div class="mission-status">
+                                <span>›</span>
+                            </div>
+                        </a>
+
+                        <!-- JOB: CORPORATE CLIMBER -->
+                        <a href="cyberpunk-clicker.html" class="mission-item group">
+                            <div class="mission-info">
+                                <h3 class="mission-title">JOB: CORPORATE CLIMBER</h3>
+                                <p class="mission-details">Objective: Click your way to the top of the corporate ladder. It's a dog-eat-dog world.</p>
+                            </div>
+                            <div class="mission-status">
+                                <span>›</span>
+                            </div>
+                        </a>
+
+                    </div>
                 </div>
             </main>
         </div>
     </div>
-    
+
     <script>
-        const waveContainer = document.getElementById('wave-background-container');
         const canvas = document.createElement('canvas');
-        waveContainer.appendChild(canvas);
+        document.getElementById('matrix-background').appendChild(canvas);
         const ctx = canvas.getContext('2d');
 
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
-        
-        // Resize handler
+
         window.addEventListener('resize', () => {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
+            columns = Math.ceil(width / fontSize);
+            drops = Array(columns).fill(1);
         });
 
-        const chars = ".";
-        
-        const fontSize = 14;
-        const columns = Math.ceil(width / fontSize);
-        const rows = Math.ceil(height / fontSize);
-        
-        let time = 0;
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const fontSize = 16;
+        let columns = Math.ceil(width / fontSize);
+        let drops = Array(columns).fill(1);
 
         function draw() {
-            // Use a semi-transparent background to create a trailing effect
-            ctx.fillStyle = 'rgba(1, 4, 10, 0.15)'; 
+            ctx.fillStyle = 'rgba(1, 4, 10, 0.05)';
             ctx.fillRect(0, 0, width, height);
 
+            ctx.fillStyle = 'rgba(255, 60, 60, 0.7)'; // Red color for the matrix rain
             ctx.font = fontSize + 'px monospace';
 
-            // Two interfering sine waves for a more complex, ocean-like motion
-            const amp1 = 20, freq1 = 0.05, speed1 = 0.015;
-            const amp2 = 15, freq2 = 0.03, speed2 = -0.01; // Negative speed for opposite direction
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
-            for (let j = 0; j < rows; j++) {
-                for (let i = 0; i < columns; i++) {
-                    const x = i * fontSize;
-                    const y = j * fontSize;
-
-                    // Calculate wave offsets using sine and cosine for variety
-                    const offsetY1 = amp1 * Math.sin(freq1 * i + time * speed1 + j * 0.1);
-                    const offsetY2 = amp2 * Math.cos(freq2 * (i + j) + time * speed2);
-                    const totalOffset = offsetY1 + offsetY2;
-
-                    const finalY = y + totalOffset;
-
-                    // Opacity is brighter at the crests of the waves
-                    const normalizedOffset = (totalOffset / (amp1 + amp2) + 1) / 2;
-                    const opacity = 0.05 + normalizedOffset * 0.15; 
-
-                    ctx.fillStyle = `rgba(0, 246, 255, ${opacity})`;
-
-                    // Pick a random character for each frame to create a shimmering effect
-                    const character = chars[Math.floor(Math.random() * chars.length)];
-                    
-                    // Draw the character at its wave--displaced position
-                    if (finalY > 0 && finalY < height) {
-                        ctx.fillText(character, x, finalY);
-                    }
+                if (drops[i] * fontSize > height && Math.random() > 0.975) {
+                    drops[i] = 0;
                 }
+                drops[i]++;
             }
-            
-            time += 1;
-            requestAnimationFrame(draw);
         }
-        
-        draw();
+
+        setInterval(draw, 40);
     </script>
 
 </body>
 
 </html>
-
