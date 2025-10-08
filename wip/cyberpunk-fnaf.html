@@ -402,7 +402,7 @@
         }
         
         function gameLoop() {
-            gameTime++;
+            gameTime = gameTime + 3;
             
             // Update RAM
             ram = Math.min(maxRam, ram + ramRegenRate);
