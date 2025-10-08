@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberNight: NetRunner's Gambit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d0c1d;
+            --primary-color: #ff00ff; /* Neon Magenta */
+            --secondary-color: #00ffff; /* Neon Cyan */
+            --accent-color: #ffff00; /* Neon Yellow */
+            --text-color: #e0e0e0;
+            --border-color: rgba(0, 255, 255, 0.3);
+            --card-bg: rgba(23, 26, 48, 0.85);
+            --shield-color: #00ffff;
+            --health-color: #ff4d4d;
+            --vulnerability-color: #ffff00;
+            --confused-color: #ff00ff;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Roboto Mono', monospace;
+            overscroll-behavior: none;
+        }
+
+        .cyber-glitch {
+            text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 15px var(--secondary-color), 0 0 20px var(--secondary-color);
+            animation: glitch 1.5s linear infinite;
+        }
+
+        .cyber-border {
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 8px var(--border-color) inset, 0 0 5px var(--border-color);
+        }
+
+        .cyber-card {
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .cyber-card:hover {
+            transform: translateY(-30px) scale(1.1);
+            box-shadow: 0 0 15px var(--secondary-color), 0 0 25px var(--secondary-color);
+            z-index: 10;
+        }
+
+        .program-card-cost {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background-color: var(--accent-color);
+            color: var(--bg-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border: 2px solid var(--bg-color);
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        .cyber-button {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: transparent;
+            border: 2px solid var(--secondary-color);
+            color: var(--secondary-color);
+            text-shadow: 0 0 5px var(--secondary-color);
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 5px var(--secondary-color) inset, 0 0 3px var(--secondary-color);
+        }
+
+        .cyber-button:hover:not(:disabled) {
+            background-color: var(--secondary-color);
+            color: var(--bg-color);
+            box-shadow: 0 0 15px var(--secondary-color);
+        }
+
+        .cyber-button:disabled {
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
+            text-shadow: none;
+            box-shadow: none;
+        }
+        
+        .status-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-weight: bold;
+            color: var(--bg-color);
+        }
+        
+        .vulnerable { background-color: var(--vulnerability-color); box-shadow: 0 0 8px var(--vulnerability-color); }
+        .confused { background-color: var(--confused-color); box-shadow: 0 0 8px var(--confused-color); }
+
+        .health-bar-inner {
+            background: linear-gradient(90deg, var(--health-color), #ff7878);
+            transition: width 0.5s ease-out;
+        }
+
+        .shield-bar-inner {
+            background: linear-gradient(90deg, var(--shield-color), #78ffff);
+            transition: width 0.5s ease-out;
+            position: absolute;
+            top:0; left: 0; height: 100%;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0, 0); opacity: 1; }
+            50% { transform: translate(2px, -2px); opacity: 0.8; }
+            51% { transform: translate(-2px, 2px); }
+        }
+
+        @keyframes damage-flash {
+            0%, 100% { box-shadow: 0 0 8px var(--border-color) inset, 0 0 5px var(--border-color); }
+            50% { box-shadow: 0 0 20px #ff0000 inset, 0 0 15px #ff0000; }
+        }
+
+        .damage-flash {
+            animation: damage-flash 0.5s ease;
+        }
+        
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .deck-pile {
+            transition: transform 0.3s ease;
+        }
+
+        .deck-pile:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="overflow-hidden h-screen w-screen flex items-center justify-center">
+
+    <div id="game-container" class="w-full h-full max-w-7xl mx-auto p-4 flex flex-col relative hidden">
+        <!-- TOP BAR: Floor & Stats -->
+        <div class="flex justify-between items-center mb-4 text-lg md:text-xl">
+            <h1 class="text-2xl md:text-4xl font-bold cyber-glitch" style="font-family: 'Share Tech Mono', monospace;">CyberNight</h1>
+            <div class="text-center">
+                <div class="font-bold text-secondary-color">ARASAKA TOWER</div>
+                <div id="floor-counter" class="text-3xl font-bold">Floor 1</div>
+            </div>
+            <div id="cyberware-icons" class="flex items-center space-x-2">
+                <!-- Cyberware icons will be injected here -->
+            </div>
+        </div>
+
+        <!-- ENEMY AREA -->
+        <div id="enemy-area" class="flex-grow flex items-center justify-center relative">
+            <!-- Enemy will be injected here -->
+        </div>
+
+        <!-- PLAYER AREA -->
+        <div class="mt-4">
+            <!-- PLAYER HAND -->
+            <div id="player-hand" class="flex justify-center items-end space-x-[-20px] md:space-x-[-40px] h-[280px] mb-4">
+                <!-- Cards will be injected here -->
+            </div>
+
+            <!-- PLAYER STATS & CONTROLS -->
+            <div class="flex justify-between items-center bg-black/30 p-2 md:p-4 rounded-lg cyber-border">
+                <!-- Player Stats -->
+                <div id="player-stats" class="flex-1 flex items-center space-x-2 md:space-x-4">
+                    <!-- Integrity (Health) -->
+                    <div class="flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
+                        <div class="w-32 md:w-48">
+                            <div class="text-sm">System Integrity</div>
+                            <div class="w-full bg-gray-700 rounded h-5 cyber-border relative overflow-hidden">
+                                <div id="health-bar" class="health-bar-inner h-full rounded"></div>
+                                <div id="shield-bar" class="shield-bar-inner h-full rounded opacity-70"></div>
+                                <div id="health-text" class="absolute inset-0 text-center text-sm font-bold leading-5">50/50</div>
+                            </div>
+                        </div>
+                    </div>
+
+                     <!-- CPU -->
+                    <div class="flex items-center space-x-2">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" /></svg>
+                        <div>
+                            <div class="text-sm">CPU Cycles</div>
+                            <div id="cpu-text" class="text-2xl font-bold">3/3</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deck & Discard -->
+                <div class="flex space-x-4">
+                    <div id="draw-pile" class="deck-pile text-center cursor-pointer">
+                        <div class="text-sm">Draw</div>
+                        <div class="w-16 h-24 bg-blue-900/50 rounded-lg flex items-center justify-center text-2xl font-bold cyber-border">
+                           <span id="draw-count">10</span>
+                        </div>
+                    </div>
+                    <div id="discard-pile" class="deck-pile text-center cursor-pointer">
+                        <div class="text-sm">Discard</div>
+                        <div class="w-16 h-24 bg-gray-800/50 rounded-lg flex items-center justify-center text-2xl font-bold cyber-border">
+                            <span id="discard-count">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- End Turn Button -->
+                <div class="flex-1 flex justify-end">
+                    <button id="end-turn-btn" class="cyber-button text-xl">End Turn</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TOOLTIP -->
+    <div id="tooltip" class="hidden absolute p-2 bg-black text-white text-sm rounded-lg border border-gray-600 z-50 pointer-events-none"></div>
+
+    <!-- MODAL -->
+    <div id="modal" class="hidden fixed inset-0 z-40 flex items-center justify-center modal-backdrop">
+        <div id="modal-content" class="w-11/12 max-w-4xl bg-black/90 rounded-lg cyber-border p-8 text-center">
+            <!-- Modal content goes here -->
+        </div>
+    </div>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-bg-color text-center p-8">
+        <h1 class="text-6xl md:text-8xl font-bold cyber-glitch mb-4" style="font-family: 'Share Tech Mono', monospace;">CyberNight</h1>
+        <h2 class="text-2xl md:text-4xl text-secondary-color mb-8">NetRunner's Gambit</h2>
+        <p class="max-w-2xl text-lg mb-12">
+            You are a rogue netrunner. Your mission: ascend the 100 floors of Arasaka Tower and neutralize its core.
+            Compile programs, install cyberware, and survive the Black ICE. Your gambit begins now.
+        </p>
+        <button id="start-game-btn" class="cyber-button text-3xl px-12 py-6">BREACH THE GATES</button>
+    </div>
+
+
+<script type="module">
+    // --- DOM Elements ---
+    const getEl = (id) => document.getElementById(id);
+    const qs = (selector) => document.querySelector(selector);
+    const gameContainer = getEl('game-container');
+    const startScreen = getEl('start-screen');
+    const startGameBtn = getEl('start-game-btn');
+    const floorCounter = getEl('floor-counter');
+    const enemyArea = getEl('enemy-area');
+    const playerHand = getEl('player-hand');
+    const healthBar = getEl('health-bar');
+    const shieldBar = getEl('shield-bar');
+    const healthText = getEl('health-text');
+    const cpuText = getEl('cpu-text');
+    const drawCountEl = getEl('draw-count');
+    const discardCountEl = getEl('discard-count');
+    const endTurnBtn = getEl('end-turn-btn');
+    const modal = getEl('modal');
+    const modalContent = getEl('modal-content');
+    const tooltip = getEl('tooltip');
+    const cyberwareIconsEl = getEl('cyberware-icons');
+    const drawPileEl = getEl('draw-pile');
+    const discardPileEl = getEl('discard-pile');
+
+    // --- Game State ---
+    let gameState = {
+        floor: 1,
+        isPlayerTurn: true,
+        isCombatActive: false,
+        isGameOver: false,
+        player: null,
+        enemy: null,
+        drawPile: [],
+        hand: [],
+        discardPile: [],
+    };
+
+    // --- Definitions ---
+    const PROGRAMS = {
+        'Ping.sh': {
+            name: 'Ping.sh', cost: 1, type: 'Attack',
+            description: 'Deal 6 damage.',
+            effect: (caster, target) => dealDamage(target, 6),
+            upgraded: {
+                name: 'Ping.sh+', cost: 1, type: 'Attack',
+                description: 'Deal 9 damage.',
+                effect: (caster, target) => dealDamage(target, 9),
+            }
+        },
+        'Firewall.exe': {
+            name: 'Firewall.exe', cost: 1, type: 'Skill',
+            description: 'Gain 5 Shielding.',
+            effect: (caster, target) => caster.gainShield(5),
+            upgraded: {
+                name: 'Firewall.exe+', cost: 1, type: 'Skill',
+                description: 'Gain 7 Shielding. Draw 1 program.',
+                effect: (caster, target) => { caster.gainShield(7); drawPrograms(1); },
+            }
+        },
+        'Data Spike.py': {
+            name: 'Data Spike.py', cost: 1, type: 'Attack',
+            description: 'Deal 3 damage. Apply 1 Vulnerability.',
+            effect: (caster, target) => { dealDamage(target, 3); target.applyStatus('vulnerable', 1); },
+            upgraded: {
+                name: 'Data Spike.py+', cost: 1, type: 'Attack',
+                description: 'Deal 4 damage. Apply 2 Vulnerability.',
+                effect: (caster, target) => { dealDamage(target, 4); target.applyStatus('vulnerable', 2); },
+            }
+        },
+        'Corruption Script': {
+            name: 'Corruption Script', cost: 1, type: 'Skill',
+            description: 'Target enemy deals 2 less damage on its next attack.',
+            effect: (caster, target) => target.applyStatus('confused', 2),
+            upgraded: {
+                name: 'Corruption Script+', cost: 1, type: 'Skill',
+                description: 'Target enemy deals 4 less damage on its next attack.',
+                effect: (caster, target) => target.applyStatus('confused', 4),
+            }
+        },
+        'Ghost Protocol': {
+            name: 'Ghost Protocol', cost: 2, type: 'Skill',
+            description: 'Gain 7 Shielding. Apply 1 Confused.',
+            effect: (caster, target) => { caster.gainShield(7); target.applyStatus('confused', 1); },
+            upgraded: {
+                name: 'Ghost Protocol+', cost: 2, type: 'Skill',
+                description: 'Gain 10 Shielding. Apply 2 Confused.',
+                effect: (caster, target) => { caster.gainShield(10); target.applyStatus('confused', 2); },
+            }
+        },
+        'System Defrag': {
+            name: 'System Defrag', cost: 3, type: 'Skill',
+            description: 'Restore 6 System Integrity. Exhaust.',
+            exhaust: true,
+            effect: (caster, target) => caster.heal(6),
+            upgraded: {
+                name: 'System Defrag+', cost: 3, type: 'Skill',
+                description: 'Restore 10 System Integrity.',
+                exhaust: false,
+                effect: (caster, target) => caster.heal(10),
+            }
+        },
+    };
+
+    const CYBERWARE = {
+        // Optics
+        KiroshiStalker: { id: 'KiroshiStalker', name: 'Kiroshi "Stalker" Optics', slot: 'Optics', icon: '👁️',
+            description: 'At the start of each combat, the intent of one random enemy is permanently revealed.',
+            onCombatStart: (player, enemy) => { if(enemy) enemy.permanentlyRevealIntent = true; }
+        },
+        TsunamiInsight: { id: 'TsunamiInsight', name: 'Tsunami "Insight" Chip', slot: 'Optics', icon: '💡',
+            description: 'When your discard pile is shuffled, the first program you draw from it will cost 0 CPU.',
+            onShuffle: (player) => player.applyStatus('insight', 1)
+        },
+        YaibaPredictive: { id: 'YaibaPredictive', name: 'Yaiba "Predictive" Processor', slot: 'Optics', icon: '📈',
+            description: 'You now draw 6 programs per turn instead of 5.',
+            modifyBaseDraw: (base) => base + 1,
+        },
+        // Processors
+        BiodyneMomentum: { id: 'BiodyneMomentum', name: 'Biodyne "Momentum" Core', slot: 'Processors', icon: '🔄',
+            description: 'Start of turn, gain 1 CPU for every 3 Attack programs played last turn.',
+            onTurnStart: (player) => {
+                const bonusCpu = Math.floor(player.attacksPlayedLastTurn / 3);
+                player.gainCpu(bonusCpu);
+                player.attacksPlayedLastTurn = 0;
+            }
+        },
+        ZetatechCapacitor: { id: 'ZetatechCapacitor', name: 'Zetatech "Capacitor" Implant', slot: 'Processors', icon: '🔋',
+            description: 'Max CPU is 10. Unspent CPU carries over.',
+            modifyMaxCpu: (base) => 10,
+            carryOverCpu: true
+        },
+        MilitechOverclocker: { id: 'MilitechOverclocker', name: 'Militech "Overclocker" Rig', slot: 'Processors', icon: '⚙️',
+            description: 'Reduces Backfire chance from Overclocking to 10% (Not implemented).',
+        },
+        // Defensive
+        AegisBastion: { id: 'AegisBastion', name: 'Aegis "Bastion" Weave', slot: 'Defensive', icon: '🛡️',
+            description: 'First time you take damage in combat, gain that much Shielding instead.',
+            onCombatStart: (player) => player.applyStatus('aegis', 1)
+        },
+        KangTaoAdrenaline: { id: 'KangTaoAdrenaline', name: 'Kang Tao "Adrenaline" Regulator', slot: 'Defensive', icon: '💉',
+            description: 'When integrity drops below 50% first time in combat, gain 2 CPU and draw 2 programs.',
+            onDamage: (player) => {
+                if (!player.statuses.adrenalineTriggered && player.hp < player.maxHp / 2) {
+                    player.applyStatus('adrenalineTriggered', 1);
+                    player.gainCpu(2);
+                    drawPrograms(2);
+                }
+            }
+        },
+        ArasakaNanofiber: { id: 'ArasakaNanofiber', name: 'Arasaka "Nanofiber" Repair Kit', slot: 'Defensive', icon: '🛠️',
+            description: 'At the end of each combat, restore 5 System Integrity.',
+            onCombatEnd: (player) => player.heal(5)
+        },
+        // Exotics
+        FixersDatashard: { id: 'FixersDatashard', name: "The Fixer's Datashard", slot: 'Exotics', icon: '💽',
+            description: 'Black Market prices reduced by 15% (Not implemented).',
+        },
+        CorruptedICEFragment: { id: 'CorruptedICEFragment', name: 'Corrupted Black ICE Fragment', slot: 'Exotics', icon: '🧊',
+            description: 'At start of combat, apply 1 Vulnerability to ALL enemies.',
+            onCombatStart: (player, enemy) => enemy.applyStatus('vulnerable', 1)
+        },
+        JohnnysLighter: { id: 'JohnnysLighter', name: "Johnny's Old Lighter", slot: 'Exotics', icon: '🔥',
+            description: 'First System Backfire from Overclocking is ignored (Not implemented).',
+        },
+    };
+
+    const ENEMY_TYPES = {
+        'Security Drone': {
+            name: 'Security Drone',
+            maxHp: 20,
+            intents: [
+                { type: 'attack', value: 6 },
+                { type: 'defend', value: 5 },
+            ]
+        },
+        'ICE Agent': {
+            name: 'ICE Agent',
+            maxHp: 40,
+            intents: [
+                { type: 'attack', value: 10 },
+                { type: 'multi-attack', value: 4, hits: 2 },
+                { type: 'debuff', status: 'confused', value: 1 },
+            ]
+        },
+        'Black ICE': {
+            name: 'Black ICE',
+            maxHp: 75,
+            intents: [
+                { type: 'attack', value: 15 },
+                { type: 'big-attack', value: 25, charge: 1 },
+                { type: 'debuff-attack', value: 8, status: 'vulnerable', statusValue: 1}
+            ]
+        },
+        'Adam Smasher Engram': {
+            name: 'Adam Smasher Digital Engram',
+            maxHp: 300,
+            intents: [
+                 { type: 'big-attack', value: 30, charge: 1 },
+                 { type: 'multi-attack', value: 8, hits: 3 },
+                 { type: 'debuff-attack', value: 12, status: 'vulnerable', statusValue: 2},
+                 { type: 'purge', value: 0}
+            ]
+        }
+    };
+    
+    // --- Classes ---
+    class Character {
+        constructor(name, maxHp) {
+            this.name = name;
+            this.maxHp = maxHp;
+            this.hp = maxHp;
+            this.shield = 0;
+            this.statuses = {}; // e.g., { vulnerable: 2, confused: 1 }
+        }
+
+        takeDamage(amount) {
+            // Aegis Bastion Cyberware check
+            if (this.statuses.aegis) {
+                this.gainShield(amount);
+                delete this.statuses.aegis;
+                return;
+            }
+
+            const damageToShield = Math.min(this.shield, amount);
+            this.shield -= damageToShield;
+            const remainingDamage = amount - damageToShield;
+            this.hp -= remainingDamage;
+            if (this.hp < 0) this.hp = 0;
+            
+            // Kang Tao Adrenaline check
+            if (this.onDamage) this.onDamage(this);
+
+            if (this.element) {
+                this.element.classList.add('damage-flash');
+                setTimeout(() => this.element.classList.remove('damage-flash'), 500);
+            }
+        }
+
+        gainShield(amount) {
+            this.shield += amount;
+        }
+        
+        heal(amount) {
+            this.hp = Math.min(this.maxHp, this.hp + amount);
+        }
+
+        applyStatus(status, value) {
+            this.statuses[status] = (this.statuses[status] || 0) + value;
+        }
+
+        tickStatuses() {
+            // Some statuses might decay over time, handled here if needed.
+            // For this game, most are consumed or last until end of turn.
+        }
+    }
+
+    class Player extends Character {
+        constructor() {
+            super('Netrunner', 50);
+            this.cpu = 3;
+            this.maxCpu = 3;
+            this.deck = this.buildStartDeck();
+            this.cyberware = [];
+            this.attacksPlayedLastTurn = 0;
+        }
+        
+        buildStartDeck() {
+            const deck = [];
+            for (let i = 0; i < 4; i++) deck.push({...PROGRAMS['Ping.sh']});
+            for (let i = 0; i < 4; i++) deck.push({...PROGRAMS['Firewall.exe']});
+            deck.push({...PROGRAMS['Data Spike.py']});
+            deck.push({...PROGRAMS['Corruption Script']});
+            return deck;
+        }
+        
+        gainCpu(amount) {
+            this.cpu = Math.min(this.maxCpu, this.cpu + amount);
+        }
+        
+        hasCyberware(id) {
+            return this.cyberware.some(cw => cw.id === id);
+        }
+        
+        addCyberware(cyberware) {
+            this.cyberware.push(cyberware);
+            // Apply immediate modifications
+            if (cyberware.modifyMaxCpu) this.maxCpu = cyberware.modifyMaxCpu(this.maxCpu);
+        }
+
+        onDamage() {
+             this.cyberware.forEach(cw => {
+                if (cw.onDamage) cw.onDamage(this);
+            });
+        }
+    }
+
+    class Enemy extends Character {
+        constructor(type) {
+            super(type.name, type.maxHp);
+            this.intents = type.intents;
+            this.currentIntent = null;
+            this.charge = 0;
+            this.permanentlyRevealIntent = false;
+        }
+
+        chooseIntent() {
+             if (this.charge > 0) {
+                // If charging, the intent is locked
+                return;
+            }
+            this.currentIntent = this.intents[Math.floor(Math.random() * this.intents.length)];
+            if (this.currentIntent.charge) {
+                 this.charge = this.currentIntent.charge;
+            }
+        }
+
+        executeTurn(player) {
+             if (this.charge > 0) {
+                this.charge--;
+                if (this.charge === 0) {
+                     // Execute charged attack
+                    this.executeIntent(this.currentIntent, player);
+                }
+                return; // End turn if still charging
+            }
+            
+            if (this.currentIntent) {
+                this.executeIntent(this.currentIntent, player);
+            }
+        }
+        
+        executeIntent(intent, player) {
+             let damage = intent.value || 0;
+             
+             // Confused status reduces damage
+             if (this.statuses.confused) {
+                 damage = Math.max(0, damage - this.statuses.confused);
+                 delete this.statuses.confused;
+             }
+
+            switch (intent.type) {
+                case 'attack':
+                case 'big-attack':
+                    player.takeDamage(damage);
+                    break;
+                case 'multi-attack':
+                    for (let i = 0; i < intent.hits; i++) {
+                        player.takeDamage(damage);
+                    }
+                    break;
+                case 'defend':
+                    this.gainShield(intent.value);
+                    break;
+                case 'debuff':
+                    player.applyStatus(intent.status, intent.value);
+                    break;
+                case 'debuff-attack':
+                    player.takeDamage(damage);
+                    player.applyStatus(intent.status, intent.statusValue);
+                    break;
+                case 'purge':
+                    player.shield = 0; // Adam Smasher special
+                    break;
+            }
+        }
+    }
+
+    // --- Game Flow ---
+    function initGame() {
+        gameState.floor = 1;
+        gameState.player = new Player();
+        gameState.isGameOver = false;
+        startCombat();
+    }
+    
+    function startCombat() {
+        const player = gameState.player;
+        player.hp = Math.min(player.maxHp, player.hp); // Heal to full if over
+        player.shield = 0;
+        player.statuses = {}; // Reset combat statuses
+        
+        const enemyType = getEnemyForFloor(gameState.floor);
+        gameState.enemy = new Enemy(enemyType);
+
+        // Cyberware onCombatStart triggers
+        player.cyberware.forEach(cw => {
+            if (cw.onCombatStart) cw.onCombatStart(player, gameState.enemy);
+        });
+
+        gameState.isCombatActive = true;
+        
+        gameState.drawPile = shuffle([...player.deck]);
+        gameState.hand = [];
+        gameState.discardPile = [];
+        
+        renderEnemy();
+        startPlayerTurn();
+    }
+    
+    function startPlayerTurn() {
+        gameState.isPlayerTurn = true;
+        const player = gameState.player;
+        player.shield = 0; // Shield decays at start of turn
+        
+        // Handle CPU
+        let carryOverCpu = player.cyberware.find(cw => cw.carryOverCpu)?.carryOverCpu || false;
+        if (!carryOverCpu) player.cpu = 0;
+        player.gainCpu(player.maxCpu);
+        
+        // Cyberware onTurnStart triggers
+        player.cyberware.forEach(cw => {
+            if (cw.onTurnStart) cw.onTurnStart(player);
+        });
+        
+        // Draw cards
+        let baseDraw = 5;
+        player.cyberware.forEach(cw => {
+            if(cw.modifyBaseDraw) baseDraw = cw.modifyBaseDraw(baseDraw);
+        });
+        drawPrograms(baseDraw);
+        
+        gameState.enemy.chooseIntent();
+        updateUI();
+    }
+    
+    function endPlayerTurn() {
+        if (!gameState.isPlayerTurn) return;
+        gameState.isPlayerTurn = false;
+        
+        // Discard hand
+        gameState.discardPile.push(...gameState.hand);
+        gameState.hand = [];
+        
+        updateUI();
+        
+        // Enemy turn
+        setTimeout(() => {
+            gameState.enemy.executeTurn(gameState.player);
+            if (gameState.player.hp <= 0) {
+                gameOver();
+                return;
+            }
+            startPlayerTurn();
+        }, 1000);
+    }
+
+    function playProgram(cardIndex) {
+        if (!gameState.isPlayerTurn) return;
+        
+        const card = gameState.hand[cardIndex];
+        const player = gameState.player;
+        const enemy = gameState.enemy;
+        
+        if (player.cpu >= card.cost) {
+            player.cpu -= card.cost;
+            
+            card.effect(player, enemy);
+            
+            // Check for attacks played for Biodyne Momentum Core
+            if (card.type === 'Attack') {
+                player.attacksPlayedLastTurn = (player.attacksPlayedLastTurn || 0) + 1;
+            }
+            
+            // Insight Chip check
+            if (player.statuses.insight) {
+                 delete player.statuses.insight;
+            }
+
+            // Move card from hand
+            gameState.hand.splice(cardIndex, 1);
+            if (card.exhaust) {
+                // Exhausted cards go out of play for the combat
+            } else {
+                gameState.discardPile.push(card);
+            }
+            
+            updateUI();
+            
+            if (enemy.hp <= 0) {
+                endCombat();
+            }
+        }
+    }
+    
+    function endCombat() {
+        gameState.isCombatActive = false;
+        
+        // Arasaka Nanofiber trigger
+        gameState.player.cyberware.forEach(cw => {
+            if (cw.onCombatEnd) cw.onCombatEnd(gameState.player);
+        });
+        
+        if (gameState.floor === 100) {
+            gameWon();
+            return;
+        }
+
+        showPostCombatRewards();
+    }
+    
+    function gameOver() {
+        gameState.isGameOver = true;
+        modalContent.innerHTML = `
+            <h2 class="text-4xl text-red-500 font-bold mb-4 cyber-glitch">SYSTEM FAILURE</h2>
+            <p class="text-xl mb-6">Your run ends on Floor ${gameState.floor}. The Black ICE consumes you.</p>
+            <button id="restart-btn" class="cyber-button text-2xl">Re-jack</button>
+        `;
+        modal.classList.remove('hidden');
+        getEl('restart-btn').addEventListener('click', () => {
+             modal.classList.add('hidden');
+             startScreen.classList.remove('hidden');
+             gameContainer.classList.add('hidden');
+        });
+    }
+
+    function gameWon() {
+        gameState.isGameOver = true;
+        modalContent.innerHTML = `
+            <h2 class="text-4xl text-secondary-color font-bold mb-4 cyber-glitch">CONNECTION TERMINATED</h2>
+            <p class="text-xl mb-6">You've breached the Arasaka Core and shattered the system. A legend is born.</p>
+            <p class="mb-8">Final Integrity: ${gameState.player.hp}/${gameState.player.maxHp}</p>
+            <button id="restart-win-btn" class="cyber-button text-2xl">Go Again</button>
+        `;
+        modal.classList.remove('hidden');
+        getEl('restart-win-btn').addEventListener('click', () => {
+             modal.classList.add('hidden');
+             startScreen.classList.remove('hidden');
+             gameContainer.classList.add('hidden');
+        });
+    }
+
+    function showPostCombatRewards() {
+        // Every 3 floors: Compiler Station
+        if (gameState.floor % 3 === 0) {
+            showCompilerStation();
+        } 
+        // Every 10 floors: Elite fight -> Cyberware
+        else if (gameState.floor % 10 === 0) {
+            showCyberwareChoice();
+        }
+        // Otherwise, program reward
+        else {
+            showProgramChoice();
+        }
+    }
+
+    function showProgramChoice() {
+        const choices = getRandomPrograms(3);
+        let choicesHTML = choices.map((prog, index) => {
+            return `<div class="cyber-card cyber-border bg-card-bg p-4 rounded-lg cursor-pointer flex flex-col justify-between h-full" data-choice="${index}">
+                <div class="relative">
+                     <div class="program-card-cost" style="background-color:${prog.type === 'Attack' ? 'var(--health-color)' : 'var(--shield-color)'}">${prog.cost}</div>
+                     <h3 class="text-xl font-bold text-accent-color mb-2 pl-8">${prog.name}</h3>
+                </div>
+                <p class="text-md flex-grow">${prog.description}</p>
+            </div>`
+        }).join('');
+
+        modalContent.innerHTML = `
+            <h2 class="text-3xl text-secondary-color font-bold mb-6">REMOTE SERVER PING... PAYLOAD ACQUIRED</h2>
+            <p class="mb-6">Add one of these programs to your cyberdeck.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                ${choicesHTML}
+            </div>
+            <button id="skip-program-btn" class="cyber-button mt-8">Skip</button>
+        `;
+        modal.classList.remove('hidden');
+        
+        qs('#modal-content .grid').addEventListener('click', (e) => {
+            const choiceEl = e.target.closest('[data-choice]');
+            if (choiceEl) {
+                const choiceIndex = parseInt(choiceEl.dataset.choice);
+                gameState.player.deck.push({...choices[choiceIndex]});
+                proceedToNextFloor();
+            }
+        });
+
+        getEl('skip-program-btn').addEventListener('click', proceedToNextFloor);
+    }
+    
+    function showCompilerStation() {
+        // Let's offer to upgrade 3 random cards from the player's deck
+        const uniquePrograms = [...new Map(gameState.player.deck.filter(p => !p.name.endsWith('+')).map(p => [p.name, p])).values()];
+        const choices = shuffle(uniquePrograms).slice(0, 3);
+        
+        if (choices.length === 0) {
+             proceedToNextFloor(); // No upgradable cards
+             return;
+        }
+
+        let choicesHTML = choices.map((prog, index) => {
+            const upgraded = PROGRAMS[prog.name.replace('+', '')].upgraded;
+            return `<div class="cyber-card cyber-border bg-card-bg p-4 rounded-lg cursor-pointer h-full" data-choice="${index}">
+                 <h3 class="text-xl font-bold text-accent-color mb-2">${prog.name} -> ${upgraded.name}</h3>
+                 <p class="text-gray-400 mb-2">${prog.description}</p>
+                 <p class="text-secondary-color">${upgraded.description}</p>
+            </div>`;
+        }).join('');
+
+        modalContent.innerHTML = `
+            <h2 class="text-3xl text-secondary-color font-bold mb-6">COMPILER STATION ACCESSED</h2>
+            <p class="mb-6">Recompile one program for the remainder of this run.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                ${choicesHTML}
+            </div>
+             <button id="skip-upgrade-btn" class="cyber-button mt-8">Skip</button>
+        `;
+        modal.classList.remove('hidden');
+
+        qs('#modal-content .grid').addEventListener('click', (e) => {
+            const choiceEl = e.target.closest('[data-choice]');
+            if (choiceEl) {
+                const choiceIndex = parseInt(choiceEl.dataset.choice);
+                const programToUpgrade = choices[choiceIndex];
+                
+                // Find and replace the first instance of this card in the deck
+                const deckIndex = gameState.player.deck.findIndex(p => p.name === programToUpgrade.name);
+                if (deckIndex !== -1) {
+                    gameState.player.deck[deckIndex] = {...PROGRAMS[programToUpgrade.name].upgraded};
+                }
+                
+                proceedToNextFloor();
+            }
+        });
+         getEl('skip-upgrade-btn').addEventListener('click', proceedToNextFloor);
+    }
+    
+    function showCyberwareChoice() {
+        const availableCyberware = Object.values(CYBERWARE).filter(cw => !gameState.player.hasCyberware(cw.id));
+        const choices = shuffle(availableCyberware).slice(0, 3);
+
+        let choicesHTML = choices.map((cw, index) => {
+            return `<div class="cyber-card cyber-border bg-card-bg p-4 rounded-lg cursor-pointer h-full flex flex-col" data-choice="${index}">
+                 <h3 class="text-xl font-bold text-accent-color mb-2">${cw.icon} ${cw.name}</h3>
+                 <p class="text-md flex-grow">${cw.description}</p>
+            </div>`;
+        }).join('');
+        
+        modalContent.innerHTML = `
+            <h2 class="text-3xl text-secondary-color font-bold mb-6">BLACK MARKET NODE // HARDWARE INTERFACE</h2>
+            <p class="mb-6">Defeated Elite guard. Install one piece of powerful Cyberware.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                ${choicesHTML}
+            </div>
+             <button id="skip-cyberware-btn" class="cyber-button mt-8">Skip</button>
+        `;
+        modal.classList.remove('hidden');
+
+        qs('#modal-content .grid').addEventListener('click', (e) => {
+            const choiceEl = e.target.closest('[data-choice]');
+            if (choiceEl) {
+                const choiceIndex = parseInt(choiceEl.dataset.choice);
+                gameState.player.addCyberware(choices[choiceIndex]);
+                proceedToNextFloor();
+            }
+        });
+        getEl('skip-cyberware-btn').addEventListener('click', proceedToNextFloor);
+    }
+
+    function proceedToNextFloor() {
+        modal.classList.add('hidden');
+        gameState.floor++;
+        startCombat();
+    }
+    
+    // --- UI Rendering ---
+    function updateUI() {
+        if (gameState.isGameOver) return;
+        
+        const player = gameState.player;
+        const enemy = gameState.enemy;
+
+        // Player Stats
+        floorCounter.textContent = `Floor ${gameState.floor}`;
+        healthBar.style.width = `${(player.hp / player.maxHp) * 100}%`;
+        shieldBar.style.width = `${(player.shield / player.maxHp) * 100}%`;
+        healthText.textContent = `${player.hp}/${player.maxHp} (+${player.shield})`;
+        cpuText.textContent = `${player.cpu}/${player.maxCpu}`;
+        
+        // Decks
+        drawCountEl.textContent = gameState.drawPile.length;
+        discardCountEl.textContent = gameState.discardPile.length;
+
+        // Hand
+        renderHand();
+        
+        // Enemy
+        if(enemy) {
+            renderEnemy();
+        }
+
+        // Cyberware icons
+        cyberwareIconsEl.innerHTML = player.cyberware.map(cw => `<div class="tooltip-trigger text-2xl">${cw.icon}<span class="tooltip-text hidden absolute bg-black p-2 rounded -translate-x-1/2 mt-2">${cw.name}</span></div>`).join('');
+
+        endTurnBtn.disabled = !gameState.isPlayerTurn;
+    }
+
+    function renderEnemy() {
+        const enemy = gameState.enemy;
+        if (!enemy) {
+            enemyArea.innerHTML = '';
+            return;
+        }
+        
+        const healthPercent = (enemy.hp / enemy.maxHp) * 100;
+
+        let intentHTML = '';
+        if (gameState.isPlayerTurn || enemy.permanentlyRevealIntent) {
+            const intent = enemy.currentIntent;
+             if (enemy.charge > 0) {
+                 intentHTML = `<div class="text-yellow-400">Charging... (${enemy.charge} turn)</div>`
+            } else if (intent) {
+                 switch(intent.type) {
+                     case 'attack':
+                     case 'big-attack':
+                         intentHTML = `<span>⚔️</span> Attacking for ${intent.value}`;
+                         break;
+                    case 'multi-attack':
+                         intentHTML = `<span>⚔️</span> Attacking for ${intent.value} x ${intent.hits}`;
+                         break;
+                     case 'defend':
+                         intentHTML = `<span>🛡️</span> Gaining ${intent.value} Shield`;
+                         break;
+                    case 'debuff':
+                         intentHTML = `<span>☣️</span> Applying ${intent.status}`;
+                         break;
+                     case 'debuff-attack':
+                          intentHTML = `<span>⚔️</span> Attacking for ${intent.value} & Applying ${intent.status}`;
+                          break;
+                     case 'purge':
+                          intentHTML = `<span>💥</span> Purging all Shields!`;
+                          break;
+                 }
+             } else {
+                intentHTML = `...`;
+             }
+        } else {
+             intentHTML = `???`
+        }
+        
+        const statusesHTML = Object.entries(enemy.statuses).map(([status, value]) => {
+            if (value > 0) {
+                return `<div class="status-icon ${status}" title="${status}">${value}</div>`;
+            }
+            return '';
+        }).join('');
+
+        enemyArea.innerHTML = `
+            <div id="enemy-character" class="text-center w-64">
+                <h2 class="text-xl font-bold text-red-500">${enemy.name}</h2>
+                <div class="w-full bg-gray-700 rounded h-6 cyber-border relative overflow-hidden my-2">
+                    <div class="health-bar-inner h-full rounded" style="width: ${healthPercent}%"></div>
+                    <div id="enemy-shield-bar" class="shield-bar-inner h-full rounded opacity-70" style="width: ${(enemy.shield / enemy.maxHp) * 100}%"></div>
+                    <div class="absolute inset-0 text-center font-bold leading-6">${enemy.hp}/${enemy.maxHp} (+${enemy.shield})</div>
+                </div>
+                <div class="flex items-center justify-center space-x-2 my-2 h-8">
+                     ${statusesHTML}
+                </div>
+                <div class="bg-black/50 cyber-border rounded p-2 text-lg text-yellow-400">
+                    ${intentHTML}
+                </div>
+            </div>
+        `;
+        enemy.element = getEl('enemy-character');
+    }
+
+    function renderHand() {
+        playerHand.innerHTML = gameState.hand.map((card, index) => {
+            const canPlay = gameState.player.cpu >= card.cost && gameState.isPlayerTurn;
+            const insightApplied = gameState.player.statuses.insight && card.cost > 0;
+            const effectiveCost = insightApplied ? 0 : card.cost;
+            const costColor = insightApplied ? 'var(--secondary-color)' : (card.type === 'Attack' ? 'var(--health-color)' : 'var(--shield-color)');
+
+            return `
+                <div class="cyber-card w-44 h-60 cyber-border bg-card-bg rounded-lg p-2 flex flex-col justify-between relative cursor-pointer ${canPlay ? '' : 'opacity-60'}" data-card-index="${index}">
+                    <div class="program-card-cost" style="background-color: ${costColor};">
+                        ${effectiveCost}
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-accent-color mt-2 pl-6">${card.name}</h3>
+                        <p class="text-sm mt-1">${card.description}</p>
+                    </div>
+                    <div class="text-center text-secondary-color text-xs font-bold uppercase">${card.type}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // --- Utility Functions ---
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+    
+    function drawPrograms(count) {
+        for (let i = 0; i < count; i++) {
+            if (gameState.drawPile.length === 0) {
+                if(gameState.discardPile.length === 0) break; // No cards left anywhere
+                gameState.drawPile = shuffle(gameState.discardPile);
+                gameState.discardPile = [];
+                // Tsunami Insight Chip
+                gameState.player.cyberware.forEach(cw => {
+                    if (cw.onShuffle) cw.onShuffle(gameState.player);
+                });
+            }
+            const card = gameState.drawPile.pop();
+            // First draw after insight is free
+            if(gameState.player.statuses.insight && card.cost > 0) {
+                const freeCard = {...card};
+                // We'll check for this status when rendering cost
+            }
+            gameState.hand.push(card);
+        }
+    }
+
+    function dealDamage(target, baseAmount) {
+         let finalAmount = baseAmount;
+         if (target.statuses.vulnerable) {
+             finalAmount += target.statuses.vulnerable;
+         }
+         target.takeDamage(finalAmount);
+    }
+    
+    function getEnemyForFloor(floor) {
+        if (floor === 100) return ENEMY_TYPES['Adam Smasher Engram'];
+        if (floor % 10 === 0) return scaleEnemy(ENEMY_TYPES['Black ICE'], floor);
+        if (floor > 50) return scaleEnemy(ENEMY_TYPES['ICE Agent'], floor);
+        if (floor > 20) return scaleEnemy(ENEMY_TYPES['ICE Agent'], floor);
+        return scaleEnemy(ENEMY_TYPES['Security Drone'], floor);
+    }
+    
+    function scaleEnemy(enemyType, floor) {
+        const scaledEnemy = JSON.parse(JSON.stringify(enemyType)); // Deep copy
+        const scaleFactor = 1 + (floor * 0.1);
+        scaledEnemy.maxHp = Math.floor(scaledEnemy.maxHp * scaleFactor);
+        scaledEnemy.intents.forEach(intent => {
+            if (intent.value) {
+                intent.value = Math.floor(intent.value * (1 + floor * 0.05));
+            }
+        });
+        return scaledEnemy;
+    }
+    
+    function getRandomPrograms(count) {
+        const programKeys = Object.keys(PROGRAMS);
+        const choices = new Set();
+        while (choices.size < count && choices.size < programKeys.length) {
+            const randomKey = programKeys[Math.floor(Math.random() * programKeys.length)];
+            choices.add(PROGRAMS[randomKey]);
+        }
+        return Array.from(choices);
+    }
+
+    // --- Event Listeners ---
+    startGameBtn.addEventListener('click', () => {
+        startScreen.classList.add('hidden');
+        gameContainer.classList.remove('hidden');
+        initGame();
+    });
+
+    endTurnBtn.addEventListener('click', endPlayerTurn);
+
+    playerHand.addEventListener('click', (e) => {
+        const cardEl = e.target.closest('[data-card-index]');
+        if (cardEl) {
+            const index = parseInt(cardEl.dataset.cardIndex);
+            playProgram(index);
+        }
+    });
+    
+    // Tooltip for decks
+    function showDeckTooltip(pile, element) {
+        if (pile.length === 0) return;
+        let content = pile.slice(-10).map(p => p.name).join('<br>');
+        if (pile.length > 10) content += '<br>...';
+        tooltip.innerHTML = content;
+        tooltip.classList.remove('hidden');
+        const rect = element.getBoundingClientRect();
+        tooltip.style.left = `${rect.left + rect.width / 2}px`;
+        tooltip.style.top = `${rect.top - tooltip.offsetHeight - 5}px`;
+        tooltip.style.transform = 'translateX(-50%)';
+    }
+
+    drawPileEl.addEventListener('mouseenter', () => showDeckTooltip(gameState.drawPile, drawPileEl));
+    drawPileEl.addEventListener('mouseleave', () => tooltip.classList.add('hidden'));
+
+    discardPileEl.addEventListener('mouseenter', () => showDeckTooltip(gameState.discardPile, discardPileEl));
+    discardPileEl.addEventListener('mouseleave', () => tooltip.classList.add('hidden'));
+    
+    // Tooltip for cyberware
+    document.body.addEventListener('mouseover', (e) => {
+        const trigger = e.target.closest('.tooltip-trigger');
+        if (trigger) {
+            const tooltipText = trigger.querySelector('.tooltip-text');
+            if (tooltipText) tooltipText.classList.remove('hidden');
+        }
+    });
+    document.body.addEventListener('mouseout', (e) => {
+        const trigger = e.target.closest('.tooltip-trigger');
+        if (trigger) {
+            const tooltipText = trigger.querySelector('.tooltip-text');
+            if (tooltipText) tooltipText.classList.add('hidden');
+        }
+    });
+
+
+</script>
+</body>
+</html>
