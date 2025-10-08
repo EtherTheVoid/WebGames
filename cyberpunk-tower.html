@@ -10,80 +10,87 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0d0c1d;
-            --primary-color: #ff00ff; /* Neon Magenta */
-            --secondary-color: #00ffff; /* Neon Cyan */
-            --accent-color: #ffff00; /* Neon Yellow */
+            --bg-color: #0a0a1a;
+            --primary-color: #FFEE00; /* Cyberpunk Yellow */
+            --secondary-color: #00F0FF; /* Cyberpunk Teal */
+            --accent-color: #FF003C; /* Cyberpunk Red */
             --text-color: #e0e0e0;
-            --border-color: rgba(0, 255, 255, 0.3);
-            --card-bg: rgba(23, 26, 48, 0.85);
-            --shield-color: #00ffff;
-            --health-color: #ff4d4d;
-            --vulnerability-color: #ffff00;
-            --confused-color: #ff00ff;
+            --border-color: rgba(0, 240, 255, 0.4);
+            --card-bg: rgba(10, 10, 26, 0.8);
+            --shield-color: #00F0FF;
+            --health-color: #FF003C;
+            --vulnerability-color: #FFEE00;
+            --confused-color: #FF003C;
+            --dynamic-bg-hue: 230; /* Start with blue */
+            --dynamic-border-color: var(--secondary-color);
+            --glitch-animation-speed: 1.5s;
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: hsl(var(--dynamic-bg-hue), 100%, 6%);
             color: var(--text-color);
-            font-family: 'Roboto Mono', monospace;
+            font-family: 'Share Tech Mono', monospace;
             overscroll-behavior: none;
+            transition: background-color 1s ease;
         }
 
         .cyber-glitch {
-            text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 15px var(--secondary-color), 0 0 20px var(--secondary-color);
-            animation: glitch 1.5s linear infinite;
+            text-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 15px var(--primary-color);
+            animation: glitch var(--glitch-animation-speed) linear infinite;
         }
 
         .cyber-border {
-            border: 1px solid var(--border-color);
-            box-shadow: 0 0 8px var(--border-color) inset, 0 0 5px var(--border-color);
+            border: 1px solid var(--dynamic-border-color);
+            box-shadow: 0 0 8px var(--dynamic-border-color) inset, 0 0 5px var(--dynamic-border-color);
+            clip-path: polygon(0 8px, 8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px));
+            transition: border-color 1s ease, box-shadow 1s ease;
         }
 
         .cyber-card {
-            backdrop-filter: blur(5px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            width: 180px;
+            height: 250px;
+            background-color: rgba(0, 240, 255, 0.05);
+            border: 1px solid var(--secondary-color);
+            clip-path: polygon(0 15px, 15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+            padding: 16px;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .cyber-card:before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            border: 1px solid var(--secondary-color);
+            clip-path: polygon(0 10px, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%);
+            opacity: 0.5;
         }
 
         .cyber-card:hover {
-            transform: translateY(-30px) scale(1.1);
-            box-shadow: 0 0 15px var(--secondary-color), 0 0 25px var(--secondary-color);
+            transform: translateY(-20px) scale(1.05);
+            background-color: rgba(0, 240, 255, 0.15);
             z-index: 10;
-        }
-
-        .program-card-cost {
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            background-color: var(--accent-color);
-            color: var(--bg-color);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            border: 2px solid var(--bg-color);
-            box-shadow: 0 0 10px var(--accent-color);
         }
 
         .cyber-button {
             font-family: 'Share Tech Mono', monospace;
             background-color: transparent;
-            border: 2px solid var(--secondary-color);
-            color: var(--secondary-color);
-            text-shadow: 0 0 5px var(--secondary-color);
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            text-shadow: 0 0 5px var(--primary-color);
             padding: 10px 20px;
             transition: all 0.3s ease;
-            box-shadow: 0 0 5px var(--secondary-color) inset, 0 0 3px var(--secondary-color);
+            box-shadow: none;
+            clip-path: polygon(0 5px, 5px 0, calc(100% - 5px) 0, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0 calc(100% - 5px));
         }
 
         .cyber-button:hover:not(:disabled) {
-            background-color: var(--secondary-color);
+            background-color: var(--primary-color);
             color: var(--bg-color);
-            box-shadow: 0 0 15px var(--secondary-color);
+            box-shadow: 0 0 15px var(--primary-color);
         }
 
         .cyber-button:disabled {
@@ -92,29 +99,30 @@
             cursor: not-allowed;
             text-shadow: none;
             box-shadow: none;
+            clip-path: none;
         }
         
         .status-icon {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
+            width: 32px;
+            height: 32px;
             font-weight: bold;
             color: var(--bg-color);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
         }
         
         .vulnerable { background-color: var(--vulnerability-color); box-shadow: 0 0 8px var(--vulnerability-color); }
         .confused { background-color: var(--confused-color); box-shadow: 0 0 8px var(--confused-color); }
 
         .health-bar-inner {
-            background: linear-gradient(90deg, var(--health-color), #ff7878);
+            background: var(--health-color);
             transition: width 0.5s ease-out;
         }
 
         .shield-bar-inner {
-            background: linear-gradient(90deg, var(--shield-color), #78ffff);
+            background: var(--shield-color);
             transition: width 0.5s ease-out;
             position: absolute;
             top:0; left: 0; height: 100%;
@@ -128,7 +136,7 @@
 
         @keyframes damage-flash {
             0%, 100% { box-shadow: 0 0 8px var(--border-color) inset, 0 0 5px var(--border-color); }
-            50% { box-shadow: 0 0 20px #ff0000 inset, 0 0 15px #ff0000; }
+            50% { box-shadow: 0 0 20px var(--accent-color) inset, 0 0 15px var(--accent-color); }
         }
 
         .damage-flash {
@@ -151,88 +159,79 @@
 </head>
 <body class="overflow-hidden h-screen w-screen flex items-center justify-center">
 
-    <div id="game-container" class="w-full h-full max-w-7xl mx-auto p-4 flex flex-col relative hidden">
-        <!-- TOP BAR: Floor & Stats -->
-        <div class="flex justify-between items-center mb-4 text-lg md:text-xl">
-            <h1 class="text-2xl md:text-4xl font-bold cyber-glitch" style="font-family: 'Share Tech Mono', monospace;">CyberNight</h1>
-            <div class="text-center">
-                <div class="font-bold text-secondary-color">ARASAKA TOWER</div>
-                <div id="floor-counter" class="text-3xl font-bold">Floor 1</div>
-            </div>
-            <div id="cyberware-icons" class="flex items-center space-x-2">
-                <!-- Cyberware icons will be injected here -->
-            </div>
+    <div id="game-container" class="w-full h-full relative hidden">
+        <!-- TOP-LEFT: Cyberware -->
+        <div id="cyberware-icons" class="absolute top-4 left-4 flex items-center space-x-2">
+            <!-- Cyberware icons will be injected here -->
         </div>
 
-        <!-- ENEMY AREA -->
-        <div id="enemy-area" class="flex-grow flex items-center justify-center relative">
-            <!-- Enemy will be injected here -->
+        <!-- TOP-RIGHT: Floor Counter -->
+        <div class="absolute top-4 right-4 text-right">
+            <div class="font-bold text-secondary-color">ARASAKA TOWER</div>
+            <div id="floor-counter" class="text-3xl font-bold">Floor 1</div>
         </div>
 
-        <!-- PLAYER AREA -->
-        <div class="mt-4">
-            <!-- PLAYER HAND -->
-            <div id="player-hand" class="flex justify-center items-end space-x-[-20px] md:space-x-[-40px] h-[280px] mb-4">
+        <!-- CENTER: Enemy and Hand -->
+        <div class="w-full h-full flex flex-col items-center justify-center">
+            <div id="enemy-area" class="flex-grow flex items-center justify-center relative">
+                <!-- Enemy will be injected here -->
+            </div>
+            <div id="player-hand" class="flex justify-center items-end space-x-4 h-[280px] mb-4">
                 <!-- Cards will be injected here -->
             </div>
+        </div>
 
-            <!-- PLAYER STATS & CONTROLS -->
-            <div class="flex justify-between items-center bg-black/30 p-2 md:p-4 rounded-lg cyber-border">
-                <!-- Player Stats -->
-                <div id="player-stats" class="flex-1 flex items-center space-x-2 md:space-x-4">
-                    <!-- Integrity (Health) -->
-                    <div class="flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
-                        <div class="w-32 md:w-48">
-                            <div class="text-sm">System Integrity</div>
-                            <div class="w-full bg-gray-700 rounded h-5 cyber-border relative overflow-hidden">
-                                <div id="health-bar" class="health-bar-inner h-full rounded"></div>
-                                <div id="shield-bar" class="shield-bar-inner h-full rounded opacity-70"></div>
-                                <div id="health-text" class="absolute inset-0 text-center text-sm font-bold leading-5">50/50</div>
-                            </div>
-                        </div>
-                    </div>
-
-                     <!-- CPU -->
-                    <div class="flex items-center space-x-2">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" /></svg>
-                        <div>
-                            <div class="text-sm">CPU Cycles</div>
-                            <div id="cpu-text" class="text-2xl font-bold">3/3</div>
+        <!-- BOTTOM-LEFT: Player Stats -->
+        <div id="player-stats-container" class="absolute bottom-4 left-4 bg-black/30 p-2 md:p-4 cyber-border">
+            <div id="player-stats" class="flex items-center space-x-2 md:space-x-4">
+                <!-- Integrity (Health) -->
+                <div class="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
+                    <div class="w-32 md:w-48">
+                        <div class="text-sm">System Integrity</div>
+                        <div class="w-full bg-gray-700 h-5 cyber-border relative overflow-hidden">
+                            <div id="health-bar" class="health-bar-inner h-full"></div>
+                            <div id="shield-bar" class="shield-bar-inner h-full opacity-70"></div>
+                            <div id="health-text" class="absolute inset-0 text-center text-sm font-bold leading-5">50/50</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Deck & Discard -->
-                <div class="flex space-x-4">
-                    <div id="draw-pile" class="deck-pile text-center cursor-pointer">
-                        <div class="text-sm">Draw</div>
-                        <div class="w-16 h-24 bg-blue-900/50 rounded-lg flex items-center justify-center text-2xl font-bold cyber-border">
-                           <span id="draw-count">10</span>
-                        </div>
+                <!-- CPU -->
+                <div class="flex items-center space-x-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" /></svg>
+                    <div>
+                        <div class="text-sm">CPU Cycles</div>
+                        <div id="cpu-text" class="text-2xl font-bold">3/3</div>
                     </div>
-                    <div id="discard-pile" class="deck-pile text-center cursor-pointer">
-                        <div class="text-sm">Discard</div>
-                        <div class="w-16 h-24 bg-gray-800/50 rounded-lg flex items-center justify-center text-2xl font-bold cyber-border">
-                            <span id="discard-count">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- End Turn Button -->
-                <div class="flex-1 flex justify-end">
-                    <button id="end-turn-btn" class="cyber-button text-xl">End Turn</button>
                 </div>
             </div>
+        </div>
+
+        <!-- BOTTOM-RIGHT: Deck, Discard, End Turn -->
+        <div class="absolute bottom-4 right-4 flex items-end space-x-4">
+            <div id="draw-pile" class="deck-pile text-center cursor-pointer">
+                <div class="text-sm">Draw</div>
+                <div class="w-16 h-24 bg-blue-900/50 flex items-center justify-center text-2xl font-bold cyber-border">
+                   <span id="draw-count">10</span>
+                </div>
+            </div>
+            <div id="discard-pile" class="deck-pile text-center cursor-pointer">
+                <div class="text-sm">Discard</div>
+                <div class="w-16 h-24 bg-gray-800/50 flex items-center justify-center text-2xl font-bold cyber-border">
+                    <span id="discard-count">0</span>
+                </div>
+            </div>
+            <button id="end-turn-btn" class="cyber-button text-xl self-end">End Turn</button>
         </div>
     </div>
     
     <!-- TOOLTIP -->
-    <div id="tooltip" class="hidden absolute p-2 bg-black text-white text-sm rounded-lg border border-gray-600 z-50 pointer-events-none"></div>
+    <div id="tooltip" class="hidden absolute p-2 bg-black text-white text-sm border border-gray-600 z-50 pointer-events-none"></div>
 
     <!-- MODAL -->
     <div id="modal" class="hidden fixed inset-0 z-40 flex items-center justify-center modal-backdrop">
-        <div id="modal-content" class="w-11/12 max-w-4xl bg-black/90 rounded-lg cyber-border p-8 text-center">
+        <div id="modal-content" class="w-11/12 max-w-4xl bg-black/90 cyber-border p-8 text-center">
             <!-- Modal content goes here -->
         </div>
     </div>
@@ -624,6 +623,27 @@
         startCombat();
     }
     
+    function updateDynamicUI(floor) {
+        const root = document.documentElement;
+        
+        // As floor increases, shift hue from blue (230) to red (0/360)
+        const hue = Math.max(0, 230 - (floor * 2.3));
+        root.style.setProperty('--dynamic-bg-hue', hue);
+
+        // Make glitch faster as floor increases
+        const speed = Math.max(0.5, 1.5 - (floor * 0.01));
+        root.style.setProperty('--glitch-animation-speed', `${speed}s`);
+
+        // Change border color on higher floors
+        if (floor > 50) {
+            root.style.setProperty('--dynamic-border-color', 'var(--accent-color)');
+        } else if (floor > 20) {
+            root.style.setProperty('--dynamic-border-color', 'var(--primary-color)');
+        } else {
+            root.style.setProperty('--dynamic-border-color', 'var(--secondary-color)');
+        }
+    }
+
     function startCombat() {
         const player = gameState.player;
         player.hp = Math.min(player.maxHp, player.hp); // Heal to full if over
@@ -644,6 +664,7 @@
         gameState.hand = [];
         gameState.discardPile = [];
         
+        updateDynamicUI(gameState.floor);
         renderEnemy();
         startPlayerTurn();
     }
@@ -798,12 +819,13 @@
     function showProgramChoice() {
         const choices = getRandomPrograms(3);
         let choicesHTML = choices.map((prog, index) => {
-            return `<div class="cyber-card cyber-border bg-card-bg p-4 rounded-lg cursor-pointer flex flex-col justify-between h-full" data-choice="${index}">
-                <div class="relative">
-                     <div class="program-card-cost" style="background-color:${prog.type === 'Attack' ? 'var(--health-color)' : 'var(--shield-color)'}">${prog.cost}</div>
-                     <h3 class="text-xl font-bold text-accent-color mb-2 pl-8">${prog.name}</h3>
+            return `<div class="cyber-card cursor-pointer" data-choice="${index}">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-lg font-bold text-primary-color">${prog.name}</h3>
+                    <div class="text-2xl font-bold text-primary-color">${prog.cost}</div>
                 </div>
-                <p class="text-md flex-grow">${prog.description}</p>
+                <p class="text-sm mt-4 flex-grow">${prog.description}</p>
+                <div class="absolute bottom-4 right-4 text-secondary-color text-xs font-bold uppercase">${prog.type}</div>
             </div>`
         }).join('');
 
@@ -841,10 +863,10 @@
 
         let choicesHTML = choices.map((prog, index) => {
             const upgraded = PROGRAMS[prog.name.replace('+', '')].upgraded;
-            return `<div class="cyber-card cyber-border bg-card-bg p-4 rounded-lg cursor-pointer h-full" data-choice="${index}">
-                 <h3 class="text-xl font-bold text-accent-color mb-2">${prog.name} -> ${upgraded.name}</h3>
-                 <p class="text-gray-400 mb-2">${prog.description}</p>
-                 <p class="text-secondary-color">${upgraded.description}</p>
+            return `<div class="cyber-card cursor-pointer" data-choice="${index}">
+                 <h3 class="text-lg font-bold text-primary-color">${prog.name} -> ${upgraded.name}</h3>
+                 <p class="text-sm mt-4 text-gray-400">${prog.description}</p>
+                 <p class="text-sm mt-2 text-secondary-color">${upgraded.description}</p>
             </div>`;
         }).join('');
 
@@ -881,8 +903,8 @@
         const choices = shuffle(availableCyberware).slice(0, 3);
 
         let choicesHTML = choices.map((cw, index) => {
-            return `<div class="cyber-card cyber-border bg-card-bg p-4 rounded-lg cursor-pointer h-full flex flex-col" data-choice="${index}">
-                 <h3 class="text-xl font-bold text-accent-color mb-2">${cw.icon} ${cw.name}</h3>
+            return `<div class="cyber-card cursor-pointer flex flex-col" data-choice="${index}">
+                 <h3 class="text-xl font-bold text-primary-color mb-2">${cw.icon} ${cw.name}</h3>
                  <p class="text-md flex-grow">${cw.description}</p>
             </div>`;
         }).join('');
@@ -941,7 +963,7 @@
         }
 
         // Cyberware icons
-        cyberwareIconsEl.innerHTML = player.cyberware.map(cw => `<div class="tooltip-trigger text-2xl">${cw.icon}<span class="tooltip-text hidden absolute bg-black p-2 rounded -translate-x-1/2 mt-2">${cw.name}</span></div>`).join('');
+        cyberwareIconsEl.innerHTML = player.cyberware.map(cw => `<div class="tooltip-trigger text-2xl">${cw.icon}<span class="tooltip-text hidden absolute bg-black p-2 -translate-x-1/2 mt-2">${cw.name}</span></div>`).join('');
 
         endTurnBtn.disabled = !gameState.isPlayerTurn;
     }
@@ -999,15 +1021,15 @@
         enemyArea.innerHTML = `
             <div id="enemy-character" class="text-center w-64">
                 <h2 class="text-xl font-bold text-red-500">${enemy.name}</h2>
-                <div class="w-full bg-gray-700 rounded h-6 cyber-border relative overflow-hidden my-2">
-                    <div class="health-bar-inner h-full rounded" style="width: ${healthPercent}%"></div>
-                    <div id="enemy-shield-bar" class="shield-bar-inner h-full rounded opacity-70" style="width: ${(enemy.shield / enemy.maxHp) * 100}%"></div>
+                <div class="w-full bg-gray-700 h-6 cyber-border relative overflow-hidden my-2">
+                    <div class="health-bar-inner h-full" style="width: ${healthPercent}%"></div>
+                    <div id="enemy-shield-bar" class="shield-bar-inner h-full opacity-70" style="width: ${(enemy.shield / enemy.maxHp) * 100}%"></div>
                     <div class="absolute inset-0 text-center font-bold leading-6">${enemy.hp}/${enemy.maxHp} (+${enemy.shield})</div>
                 </div>
                 <div class="flex items-center justify-center space-x-2 my-2 h-8">
                      ${statusesHTML}
                 </div>
-                <div class="bg-black/50 cyber-border rounded p-2 text-lg text-yellow-400">
+                <div class="bg-black/50 cyber-border p-2 text-lg text-yellow-400">
                     ${intentHTML}
                 </div>
             </div>
@@ -1020,18 +1042,15 @@
             const canPlay = gameState.player.cpu >= card.cost && gameState.isPlayerTurn;
             const insightApplied = gameState.player.statuses.insight && card.cost > 0;
             const effectiveCost = insightApplied ? 0 : card.cost;
-            const costColor = insightApplied ? 'var(--secondary-color)' : (card.type === 'Attack' ? 'var(--health-color)' : 'var(--shield-color)');
 
             return `
-                <div class="cyber-card w-44 h-60 cyber-border bg-card-bg rounded-lg p-2 flex flex-col justify-between relative cursor-pointer ${canPlay ? '' : 'opacity-60'}" data-card-index="${index}">
-                    <div class="program-card-cost" style="background-color: ${costColor};">
-                        ${effectiveCost}
+                <div class="cyber-card ${canPlay ? '' : 'opacity-60'} cursor-pointer" data-card-index="${index}">
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-lg font-bold text-primary-color">${card.name}</h3>
+                        <div class="text-2xl font-bold text-primary-color">${effectiveCost}</div>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-accent-color mt-2 pl-6">${card.name}</h3>
-                        <p class="text-sm mt-1">${card.description}</p>
-                    </div>
-                    <div class="text-center text-secondary-color text-xs font-bold uppercase">${card.type}</div>
+                    <p class="text-sm mt-4">${card.description}</p>
+                    <div class="absolute bottom-4 right-4 text-secondary-color text-xs font-bold uppercase">${card.type}</div>
                 </div>
             `;
         }).join('');
