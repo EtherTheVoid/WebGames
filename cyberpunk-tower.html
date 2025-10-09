@@ -55,6 +55,9 @@
             clip-path: polygon(0 15px, 15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
             padding: 16px;
             transition: transform 0.3s ease, background-color 0.3s ease;
+            flex-shrink: 0; /* Prevent cards from shrinking in the flex container */
+            display: flex;
+            flex-direction: column;
         }
 
         .cyber-card:before {
@@ -155,74 +158,102 @@
         .deck-pile:hover {
             transform: scale(1.1);
         }
+
+        /* Custom scrollbar for player hand */
+        #player-hand {
+            scrollbar-width: thin; /* For Firefox */
+            scrollbar-color: var(--secondary-color) rgba(0, 240, 255, 0.1); /* For Firefox */
+        }
+        #player-hand::-webkit-scrollbar {
+            height: 8px;
+        }
+        #player-hand::-webkit-scrollbar-track {
+            background: rgba(0, 240, 255, 0.1);
+            border-radius: 4px;
+        }
+        #player-hand::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+            border: 1px solid var(--bg-color);
+        }
+        #player-hand::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
     </style>
 </head>
 <body class="overflow-hidden h-screen w-screen flex items-center justify-center">
 
     <div id="game-container" class="w-full h-full relative hidden">
         <!-- TOP-LEFT: Cyberware -->
-        <div id="cyberware-icons" class="absolute top-4 left-4 flex items-center space-x-2">
+        <div id="cyberware-icons" class="absolute top-4 left-4 flex items-center space-x-2 z-10">
             <!-- Cyberware icons will be injected here -->
         </div>
 
         <!-- TOP-RIGHT: Floor Counter -->
-        <div class="absolute top-4 right-4 text-right">
+        <div class="absolute top-4 right-4 text-right z-10">
             <div class="font-bold text-secondary-color">ARASAKA TOWER</div>
             <div id="floor-counter" class="text-3xl font-bold">Floor 1</div>
         </div>
 
-        <!-- CENTER: Enemy and Hand -->
-        <div class="w-full h-full flex flex-col items-center justify-center">
-            <div id="enemy-area" class="flex-grow flex items-center justify-center relative">
+        <!-- Main Game Layout -->
+        <div class="w-full h-full flex flex-col">
+            <!-- Enemy Area -->
+            <div id="enemy-area" class="flex-grow flex items-center justify-center relative pt-16">
                 <!-- Enemy will be injected here -->
             </div>
-            <div id="player-hand" class="flex justify-center items-end space-x-4 h-[280px] mb-4">
+
+            <!-- Player Hand -->
+            <!-- Height is increased and top padding is added to prevent the hover effect from being cropped -->
+            <div id="player-hand" class="w-full flex justify-center items-end space-x-4 h-[300px] overflow-x-auto pb-4 px-2 pt-8">
                 <!-- Cards will be injected here -->
             </div>
-        </div>
+            
+            <!-- Bottom UI Bar -->
+            <div class="flex justify-between items-end p-4">
+                <!-- Player Stats -->
+                <div id="player-stats-container" class="bg-black/30 p-2 md:p-4 cyber-border">
+                    <div id="player-stats" class="flex items-center space-x-2 md:space-x-4">
+                        <!-- Integrity (Health) -->
+                        <div class="flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
+                            <div class="w-32 md:w-48">
+                                <div class="text-sm">System Integrity</div>
+                                <div class="w-full bg-gray-700 h-5 cyber-border relative overflow-hidden">
+                                    <div id="health-bar" class="health-bar-inner h-full"></div>
+                                    <div id="shield-bar" class="shield-bar-inner h-full opacity-70"></div>
+                                    <div id="health-text" class="absolute inset-0 text-center text-sm font-bold leading-5">50/50</div>
+                                </div>
+                            </div>
+                        </div>
 
-        <!-- BOTTOM-LEFT: Player Stats -->
-        <div id="player-stats-container" class="absolute bottom-4 left-4 bg-black/30 p-2 md:p-4 cyber-border">
-            <div id="player-stats" class="flex items-center space-x-2 md:space-x-4">
-                <!-- Integrity (Health) -->
-                <div class="flex items-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" /></svg>
-                    <div class="w-32 md:w-48">
-                        <div class="text-sm">System Integrity</div>
-                        <div class="w-full bg-gray-700 h-5 cyber-border relative overflow-hidden">
-                            <div id="health-bar" class="health-bar-inner h-full"></div>
-                            <div id="shield-bar" class="shield-bar-inner h-full opacity-70"></div>
-                            <div id="health-text" class="absolute inset-0 text-center text-sm font-bold leading-5">50/50</div>
+                        <!-- CPU -->
+                        <div class="flex items-center space-x-2">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" /></svg>
+                            <div>
+                                <div class="text-sm">CPU Cycles</div>
+                                <div id="cpu-text" class="text-2xl font-bold">3/3</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- CPU -->
-                <div class="flex items-center space-x-2">
-                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" /></svg>
-                    <div>
-                        <div class="text-sm">CPU Cycles</div>
-                        <div id="cpu-text" class="text-2xl font-bold">3/3</div>
+                <!-- Deck, Discard, End Turn -->
+                <div class="flex items-end space-x-4">
+                    <div id="draw-pile" class="deck-pile text-center cursor-pointer">
+                        <div class="text-sm">Draw</div>
+                        <div class="w-16 h-24 bg-blue-900/50 flex items-center justify-center text-2xl font-bold cyber-border">
+                            <span id="draw-count">10</span>
+                        </div>
                     </div>
+                    <div id="discard-pile" class="deck-pile text-center cursor-pointer">
+                        <div class="text-sm">Discard</div>
+                        <div class="w-16 h-24 bg-gray-800/50 flex items-center justify-center text-2xl font-bold cyber-border">
+                            <span id="discard-count">0</span>
+                        </div>
+                    </div>
+                    <button id="end-turn-btn" class="cyber-button text-xl self-end">End Turn</button>
                 </div>
             </div>
-        </div>
-
-        <!-- BOTTOM-RIGHT: Deck, Discard, End Turn -->
-        <div class="absolute bottom-4 right-4 flex items-end space-x-4">
-            <div id="draw-pile" class="deck-pile text-center cursor-pointer">
-                <div class="text-sm">Draw</div>
-                <div class="w-16 h-24 bg-blue-900/50 flex items-center justify-center text-2xl font-bold cyber-border">
-                   <span id="draw-count">10</span>
-                </div>
-            </div>
-            <div id="discard-pile" class="deck-pile text-center cursor-pointer">
-                <div class="text-sm">Discard</div>
-                <div class="w-16 h-24 bg-gray-800/50 flex items-center justify-center text-2xl font-bold cyber-border">
-                    <span id="discard-count">0</span>
-                </div>
-            </div>
-            <button id="end-turn-btn" class="cyber-button text-xl self-end">End Turn</button>
         </div>
     </div>
     
@@ -278,6 +309,7 @@
         isPlayerTurn: true,
         isCombatActive: false,
         isGameOver: false,
+        overclockUsedThisTurn: false,
         player: null,
         enemy: null,
         drawPile: [],
@@ -291,6 +323,14 @@
             name: 'Ping.sh', cost: 1, type: 'Attack',
             description: 'Deal 6 damage.',
             effect: (caster, target) => dealDamage(target, 6),
+            mildBoost: {
+                description: 'Deals 10 damage.',
+                effect: (caster, target) => dealDamage(target, 10),
+            },
+            hugeBoost: {
+                description: 'Deals 18 damage.',
+                effect: (caster, target) => dealDamage(target, 18),
+            },
             upgraded: {
                 name: 'Ping.sh+', cost: 1, type: 'Attack',
                 description: 'Deal 9 damage.',
@@ -301,6 +341,14 @@
             name: 'Firewall.exe', cost: 1, type: 'Skill',
             description: 'Gain 5 Shielding.',
             effect: (caster, target) => caster.gainShield(5),
+            mildBoost: {
+                description: 'Gain 9 Shielding.',
+                effect: (caster, target) => caster.gainShield(9),
+            },
+            hugeBoost: {
+                description: 'Gain 12 Shielding and Draw 1 program.',
+                effect: (caster, target) => { caster.gainShield(12); drawPrograms(1); },
+            },
             upgraded: {
                 name: 'Firewall.exe+', cost: 1, type: 'Skill',
                 description: 'Gain 7 Shielding. Draw 1 program.',
@@ -311,6 +359,18 @@
             name: 'Data Spike.py', cost: 1, type: 'Attack',
             description: 'Deal 3 damage. Apply 1 Vulnerability.',
             effect: (caster, target) => { dealDamage(target, 3); target.applyStatus('vulnerable', 1); },
+            mildBoost: {
+                description: 'Deals 5 damage and applies 1 Vulnerability.',
+                effect: (caster, target) => { dealDamage(target, 5); target.applyStatus('vulnerable', 1); },
+            },
+            hugeBoost: {
+                description: 'Deals 5 damage and applies Vulnerability to ALL enemies.',
+                effect: (caster, target) => {
+                    dealDamage(target, 5);
+                    // This currently only affects one enemy, but is ready for multi-enemy fights
+                    if (gameState.enemy) gameState.enemy.applyStatus('vulnerable', 1);
+                },
+            },
             upgraded: {
                 name: 'Data Spike.py+', cost: 1, type: 'Attack',
                 description: 'Deal 4 damage. Apply 2 Vulnerability.',
@@ -321,6 +381,14 @@
             name: 'Corruption Script', cost: 1, type: 'Skill',
             description: 'Target enemy deals 2 less damage on its next attack.',
             effect: (caster, target) => target.applyStatus('confused', 2),
+            mildBoost: {
+                description: 'Target enemy deals 4 less damage on its next attack.',
+                effect: (caster, target) => target.applyStatus('confused', 4),
+            },
+            hugeBoost: {
+                description: 'Target enemy deals 4 less damage for its next 2 attacks.',
+                effect: (caster, target) => target.applyStatus('confused', 4, 2), // value, turns
+            },
             upgraded: {
                 name: 'Corruption Script+', cost: 1, type: 'Skill',
                 description: 'Target enemy deals 4 less damage on its next attack.',
@@ -331,6 +399,17 @@
             name: 'Ghost Protocol', cost: 2, type: 'Skill',
             description: 'Gain 7 Shielding. Apply 1 Confused.',
             effect: (caster, target) => { caster.gainShield(7); target.applyStatus('confused', 1); },
+            mildBoost: {
+                description: 'Gain 12 Shielding and apply 1 Confused.',
+                effect: (caster, target) => { caster.gainShield(12); target.applyStatus('confused', 1); },
+            },
+            hugeBoost: {
+                description: 'Gain 12 Shielding and apply Confused to ALL enemies.',
+                effect: (caster, target) => {
+                    caster.gainShield(12);
+                    if (gameState.enemy) gameState.enemy.applyStatus('confused', 1);
+                },
+            },
             upgraded: {
                 name: 'Ghost Protocol+', cost: 2, type: 'Skill',
                 description: 'Gain 10 Shielding. Apply 2 Confused.',
@@ -342,6 +421,19 @@
             description: 'Restore 6 System Integrity. Exhaust.',
             exhaust: true,
             effect: (caster, target) => caster.heal(6),
+            mildBoost: {
+                description: 'Restore 11 System Integrity.',
+                effect: (caster, target) => caster.heal(11),
+            },
+            hugeBoost: {
+                description: 'Restore 20 System Integrity and purge all debuffs from yourself.',
+                effect: (caster, target) => {
+                    caster.heal(20);
+                    // Purge debuffs
+                    delete caster.statuses.vulnerable;
+                    delete caster.statuses.confused;
+                },
+            },
             upgraded: {
                 name: 'System Defrag+', cost: 3, type: 'Skill',
                 description: 'Restore 10 System Integrity.',
@@ -494,13 +586,22 @@
             this.hp = Math.min(this.maxHp, this.hp + amount);
         }
 
-        applyStatus(status, value) {
-            this.statuses[status] = (this.statuses[status] || 0) + value;
+        applyStatus(status, value, turns = 1) {
+            if (this.statuses[status]) {
+                 this.statuses[status].value += value;
+                 this.statuses[status].turns = Math.max(this.statuses[status].turns, turns);
+            } else {
+                 this.statuses[status] = { value, turns };
+            }
         }
 
         tickStatuses() {
-            // Some statuses might decay over time, handled here if needed.
-            // For this game, most are consumed or last until end of turn.
+            for (const status in this.statuses) {
+                this.statuses[status].turns--;
+                if(this.statuses[status].turns <= 0) {
+                    delete this.statuses[status];
+                }
+            }
         }
     }
 
@@ -512,6 +613,7 @@
             this.deck = this.buildStartDeck();
             this.cyberware = [];
             this.attacksPlayedLastTurn = 0;
+            this.paralyzed = 0;
         }
         
         buildStartDeck() {
@@ -580,13 +682,7 @@
         }
         
         executeIntent(intent, player) {
-             let damage = intent.value || 0;
-             
-             // Confused status reduces damage
-             if (this.statuses.confused) {
-                 damage = Math.max(0, damage - this.statuses.confused);
-                 delete this.statuses.confused;
-             }
+             let damage = (this.statuses.confused ? Math.max(0, (intent.value || 0) - this.statuses.confused.value) : intent.value) || 0;
 
             switch (intent.type) {
                 case 'attack':
@@ -612,6 +708,7 @@
                     player.shield = 0; // Adam Smasher special
                     break;
             }
+            this.tickStatuses();
         }
     }
 
@@ -671,9 +768,16 @@
     
     function startPlayerTurn() {
         gameState.isPlayerTurn = true;
+        gameState.overclockUsedThisTurn = false;
         const player = gameState.player;
         player.shield = 0; // Shield decays at start of turn
         
+        if (player.paralyzed > 0) {
+            player.paralyzed--;
+            endPlayerTurn();
+            return;
+        }
+
         // Handle CPU
         let carryOverCpu = player.cyberware.find(cw => cw.carryOverCpu)?.carryOverCpu || false;
         if (!carryOverCpu) player.cpu = 0;
@@ -752,6 +856,53 @@
                 endCombat();
             }
         }
+    }
+
+    function overclockProgram(cardIndex) {
+        if (!gameState.isPlayerTurn || gameState.overclockUsedThisTurn) return;
+
+        const card = gameState.hand[cardIndex];
+        const player = gameState.player;
+        const enemy = gameState.enemy;
+
+        if (player.cpu < card.cost) return;
+
+        gameState.overclockUsedThisTurn = true;
+        player.cpu -= card.cost;
+
+        const rand = Math.random() * 100;
+        let outcomeText = '';
+        let outcomeEffect = () => {};
+
+        if (rand < 40) { // Critical Success
+            outcomeText = `<h2 class="text-3xl text-green-400 font-bold mb-4 cyber-glitch">CRITICAL SUCCESS</h2><p class="text-xl">${card.hugeBoost.description}</p>`;
+            outcomeEffect = () => card.hugeBoost.effect(player, enemy);
+        } else if (rand < 60) { // Standard Success
+            outcomeText = `<h2 class="text-3xl text-blue-400 font-bold mb-4">STANDARD SUCCESS</h2><p class="text-xl">${card.mildBoost.description}</p>`;
+            outcomeEffect = () => card.mildBoost.effect(player, enemy);
+        } else if (rand < 80) { // System Fizzle
+            outcomeText = `<h2 class="text-3xl text-yellow-400 font-bold mb-4">SYSTEM FIZZLE</h2><p class="text-xl">The program has its standard effect. Overclock consumed.</p>`;
+            outcomeEffect = () => card.effect(player, enemy);
+        } else { // System Crash
+            outcomeText = `<h2 class="text-3xl text-red-500 font-bold mb-4 cyber-glitch">SYSTEM CRASH</h2><p class="text-xl">Program fails! CPU lost. You are PARALYZED for 1 turn.</p>`;
+            outcomeEffect = () => { player.paralyzed = 1; };
+        }
+
+        modalContent.innerHTML = `${outcomeText}<button id="continue-btn" class="cyber-button mt-8">Continue</button>`;
+        modal.classList.remove('hidden');
+
+        getEl('continue-btn').addEventListener('click', () => {
+            modal.classList.add('hidden');
+            outcomeEffect();
+
+            gameState.hand.splice(cardIndex, 1);
+            gameState.discardPile.push(card);
+
+            updateUI();
+            if (enemy.hp <= 0) {
+                endCombat();
+            }
+        }, { once: true });
     }
     
     function endCombat() {
@@ -1004,16 +1155,16 @@
                           intentHTML = `<span>💥</span> Purging all Shields!`;
                           break;
                  }
-             } else {
+            } else {
                 intentHTML = `...`;
-             }
+            }
         } else {
              intentHTML = `???`
         }
         
-        const statusesHTML = Object.entries(enemy.statuses).map(([status, value]) => {
-            if (value > 0) {
-                return `<div class="status-icon ${status}" title="${status}">${value}</div>`;
+        const statusesHTML = Object.entries(enemy.statuses).map(([status, data]) => {
+            if (data.value > 0) {
+                return `<div class="status-icon ${status}" title="${status}">${data.value}</div>`;
             }
             return '';
         }).join('');
@@ -1042,15 +1193,21 @@
             const canPlay = gameState.player.cpu >= card.cost && gameState.isPlayerTurn;
             const insightApplied = gameState.player.statuses.insight && card.cost > 0;
             const effectiveCost = insightApplied ? 0 : card.cost;
+            const canOverclock = canPlay && !gameState.overclockUsedThisTurn;
 
             return `
-                <div class="cyber-card ${canPlay ? '' : 'opacity-60'} cursor-pointer" data-card-index="${index}">
-                    <div class="flex justify-between items-start">
-                        <h3 class="text-lg font-bold text-primary-color">${card.name}</h3>
-                        <div class="text-2xl font-bold text-primary-color">${effectiveCost}</div>
+                <div class="cyber-card ${canPlay ? '' : 'opacity-60'}" data-card-index="${index}" style="cursor: ${canPlay ? 'pointer' : 'not-allowed'};">
+                    <div class="flex-grow pointer-events-none">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-bold text-primary-color">${card.name}</h3>
+                            <div class="text-2xl font-bold text-primary-color">${effectiveCost}</div>
+                        </div>
+                        <p class="text-sm mt-4">${card.description}</p>
                     </div>
-                    <p class="text-sm mt-4">${card.description}</p>
-                    <div class="absolute bottom-4 right-4 text-secondary-color text-xs font-bold uppercase">${card.type}</div>
+                    <div class="absolute bottom-4 right-4 text-secondary-color text-xs font-bold uppercase pointer-events-none">${card.type}</div>
+                    <button class="cyber-button text-xs mt-2" data-overclock-index="${index}" ${!canOverclock ? 'disabled' : ''}>
+                        Overclock
+                    </button>
                 </div>
             `;
         }).join('');
@@ -1087,11 +1244,11 @@
     }
 
     function dealDamage(target, baseAmount) {
-         let finalAmount = baseAmount;
-         if (target.statuses.vulnerable) {
-             finalAmount += target.statuses.vulnerable;
-         }
-         target.takeDamage(finalAmount);
+       let finalAmount = baseAmount;
+       if (target.statuses.vulnerable) {
+           finalAmount += target.statuses.vulnerable.value;
+       }
+       target.takeDamage(finalAmount);
     }
     
     function getEnemyForFloor(floor) {
@@ -1135,7 +1292,12 @@
 
     playerHand.addEventListener('click', (e) => {
         const cardEl = e.target.closest('[data-card-index]');
-        if (cardEl) {
+        const overclockEl = e.target.closest('[data-overclock-index]');
+
+        if (overclockEl) {
+            const index = parseInt(overclockEl.dataset.overclockIndex);
+            overclockProgram(index);
+        } else if (cardEl) {
             const index = parseInt(cardEl.dataset.cardIndex);
             playProgram(index);
         }
@@ -1180,3 +1342,4 @@
 </script>
 </body>
 </html>
+
