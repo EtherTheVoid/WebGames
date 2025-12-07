@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Sara!</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Great+Vibes&family=Montserrat:wght@300;400;600&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* Custom Styles & Animations */
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background: linear-gradient(135deg, #fff0f5 0%, #f3e8ff 100%); /* Lavender Blush to Pale Purple */
+            color: #4a4a4a;
+            overflow-x: hidden;
+        }
+
+        .font-header {
+            font-family: 'Cinzel', serif;
+        }
+
+        .font-script {
+            font-family: 'Great Vibes', cursive;
+        }
+
+        /* Sparkle Background Canvas */
+        #star-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* No background color here, letting body gradient show through */
+        }
+
+        /* Glassmorphism Cards - Lighter & Cuter */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(255, 105, 180, 0.15);
+            border-radius: 24px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(255, 105, 180, 0.25);
+        }
+
+        /* Scroll Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s ease;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Candle & Cake Animation */
+        .cake-container {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin: 0 auto;
+            cursor: pointer;
+            animation: float-cake 3s ease-in-out infinite;
+        }
+
+        @keyframes float-cake {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .cake {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 140px;
+            background: #fbcfe8; /* Pink Sponge */
+            border-radius: 15px 15px 10px 10px;
+            box-shadow: inset 0 -15px #f9a8d4, inset 0 15px #fff;
+        }
+
+        .cake::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: #fff; /* White Frosting */
+            border-radius: 15px 15px 30px 30px;
+            box-shadow: 0 4px 10px rgba(249, 168, 212, 0.2);
+            background-image: radial-gradient(#f472b6 20%, transparent 20%);
+            background-size: 20px 20px;
+            background-position: 0 0;
+        }
+
+        .candle {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 50px;
+            background: repeating-linear-gradient(45deg, #fff, #fff 5px, #f472b6 5px, #f472b6 10px);
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .flame {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 22px;
+            background: radial-gradient(ellipse at bottom, #fde047 0%, #f97316 60%, transparent 100%);
+            border-radius: 50% 50% 20% 20%;
+            animation: flicker 1s infinite alternate;
+            opacity: 1;
+            transition: opacity 0.5s;
+            box-shadow: 0 0 15px #fcd34d;
+        }
+
+        .smoke {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 30px;
+            background: rgba(100, 100, 100, 0.2);
+            filter: blur(5px);
+            border-radius: 50%;
+            opacity: 0;
+            animation: rise 2s forwards;
+            display: none;
+        }
+
+        @keyframes flicker {
+            0% { transform: translateX(-50%) scale(1); opacity: 0.9; }
+            100% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+        }
+
+        @keyframes rise {
+            0% { transform: translateX(-50%) translateY(0) scale(1); opacity: 0.8; }
+            100% { transform: translateX(-50%) translateY(-50px) scale(2); opacity: 0; }
+        }
+
+        .text-glow {
+            text-shadow: 2px 2px 0px #fbcfe8, 4px 4px 0px #f472b6;
+        }
+
+        
+        .typewriter h1 {
+            overflow: hidden; 
+            border-right: .15em solid #f472b6; 
+            white-space: nowrap; 
+            margin: 0 auto; 
+            letter-spacing: .10em; 
+            animation: 
+            typing 3.5s steps(40, end), 
+            blink-caret .75s step-end infinite;
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #f472b6; }
+        }
+
+        /* Floating Hearts Animation Background */
+        .bg-heart {
+            position: fixed;
+            color: rgba(244, 114, 182, 0.2);
+            font-size: 2rem;
+            animation: floatUp linear infinite;
+            z-index: -1;
+            user-select: none;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Background Canvas for Sparkles -->
+    <canvas id="star-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 p-6 flex justify-between items-center text-pink-500">
+        <div class="text-xl font-bold tracking-widest font-header">HAPPY BIRTHDAY</div>
+        <div class="text-sm uppercase tracking-wider font-semibold text-pink-400">Dec 07 • Sara's Day</div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="h-screen flex flex-col justify-center items-center text-center px-4 relative overflow-hidden">
+        <!-- Decorative Circle -->
+        <div class="absolute -z-10 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 top-1/4 left-1/4 animate-pulse"></div>
+        <div class="absolute -z-10 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 bottom-1/4 right-1/4 animate-pulse" style="animation-delay: 1s;"></div>
+
+        <div class="z-10 max-w-4xl">
+            <h2 class="text-pink-400 tracking-widest uppercase mb-4 text-sm md:text-base font-bold animate-bounce">✨ It's your special day ✨</h2>
+            <div class="typewriter w-fit mx-auto mb-6">
+                <h1 class="text-4xl md:text-7xl lg:text-8xl font-header font-bold text-gray-800 text-glow">
+                    Happy Birthday Sara
+                </h1>
+            </div>
+            <p class="text-lg md:text-2xl font-medium text-gray-600 max-w-2xl mx-auto leading-relaxed mt-8">
+                To the one who shines brighter than all the stars. <br>
+                <span class="text-pink-500 font-script text-3xl">Have the sweetest day ever!</span>
+            </p>
+            
+            <button onclick="scrollToCake()" class="mt-12 px-10 py-4 bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white font-bold rounded-full transition-all transform hover:scale-110 shadow-lg shadow-pink-200">
+                🎂 Make a Wish!
+            </button>
+        </div>
+        
+        <div class="absolute bottom-10 animate-bounce">
+            <svg class="w-8 h-8 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+        </div>
+    </section>
+
+    <!-- Interactive Cake Section -->
+    <section id="cake-section" class="min-h-[90vh] flex flex-col justify-center items-center py-20 reveal relative">
+        <div class="text-center mb-16 relative z-10">
+            <h2 class="text-5xl font-header mb-4 text-purple-600">Make a Wish</h2>
+            <p class="text-gray-500 text-xl font-medium">Close your eyes and click the cake! 🎈</p>
+        </div>
+
+        <div class="cake-container transform transition-all hover:scale-105 active:scale-95" id="cake-interaction">
+            <div class="cake"></div>
+            <div class="candle">
+                <div class="flame" id="flame"></div>
+                <div class="smoke" id="smoke"></div>
+            </div>
+        </div>
+        
+        <div id="wish-message" class="mt-16 text-center opacity-0 transition-opacity duration-1000">
+            <p class="text-4xl font-script text-pink-500 mb-2">Woohoo!</p>
+            <p class="text-xl text-gray-600">May all your dreams come true! ✨</p>
+        </div>
+
+        <!-- Floating decorative elements for this section -->
+        <div class="absolute top-20 left-10 text-4xl animate-bounce" style="animation-duration: 3s">🎁</div>
+        <div class="absolute bottom-20 right-10 text-4xl animate-bounce" style="animation-duration: 4s">🎉</div>
+    </section>
+
+    <!-- Message Section -->
+    <section class="py-20 px-4 flex justify-center reveal">
+        <div class="glass-card max-w-3xl w-full p-10 md:p-16 relative overflow-hidden text-center">
+            
+            <h3 class="text-3xl font-header mb-8 text-purple-600">A Little Note for You</h3>
+            <p class="text-xl leading-loose text-gray-600 font-medium">
+                "Another year around the sun, and you are glowing! 
+                Just like your favorite feed, may your life be filled with aesthetic moments, 
+                beautiful memories, and endless joy. 
+                Keep being your amazing, stylish, and wonderful self."
+            </p>
+            <div class="mt-10 font-script text-4xl text-pink-500">
+                With lots of Love
+            </div>
+            
+            <div class="mt-8 flex justify-center space-x-4">
+                <span class="text-2xl animate-pulse">💖</span>
+                <span class="text-2xl animate-pulse" style="animation-delay: 0.2s">✨</span>
+                <span class="text-2xl animate-pulse" style="animation-delay: 0.4s">🦋</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-10 text-center text-gray-400 text-sm font-semibold">
+        <p>Made with 💖 for Sara</p>
+    </footer>
+
+    <script>
+        // --- Generate Floating Background Hearts ---
+        function createFloatingHearts() {
+            const body = document.body;
+            const heartCount = 15;
+            const shapes = ['❤', '✨', '🌸'];
+
+            for (let i = 0; i < heartCount; i++) {
+                const el = document.createElement('div');
+                el.classList.add('bg-heart');
+                el.innerText = shapes[Math.floor(Math.random() * shapes.length)];
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                el.style.fontSize = (Math.random() * 1 + 1) + 'rem';
+                body.appendChild(el);
+            }
+        }
+        createFloatingHearts();
+
+
+        // --- Sparkle Background Logic ---
+        const canvas = document.getElementById('star-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let stars = [];
+        // Pastel colors for sparkles
+        const starColors = ['#f472b6', '#c084fc', '#fbbf24', '#60a5fa', '#ffffff'];
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            initStars();
+        }
+
+        class Star {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.opacity = Math.random();
+                this.color = starColors[Math.floor(Math.random() * starColors.length)];
+                this.growing = true;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                
+                // Wrap around screen
+                if (this.x < 0) this.x = width;
+                if (this.x > width) this.x = 0;
+                if (this.y < 0) this.y = height;
+                if (this.y > height) this.y = 0;
+                
+                // Pulse size
+                if (this.growing) {
+                    this.size += 0.05;
+                    if (this.size > 5) this.growing = false;
+                } else {
+                    this.size -= 0.05;
+                    if (this.size < 1) this.growing = true;
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = 0.6;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < 80; i++) {
+                stars.push(new Star());
+            }
+        }
+
+        function animateStars() {
+            ctx.clearRect(0, 0, width, height);
+            stars.forEach(star => {
+                star.update();
+                star.draw();
+            });
+            requestAnimationFrame(animateStars);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        animateStars();
+
+        // --- Scroll Reveal Logic ---
+        const reveals = document.querySelectorAll('.reveal');
+        
+        function reveal() {
+            for (let i = 0; i < reveals.length; i++) {
+                let windowHeight = window.innerHeight;
+                let elementTop = reveals[i].getBoundingClientRect().top;
+                let elementVisible = 150;
+
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+        reveal(); // Trigger once on load
+
+        // --- Cake Interaction ---
+        const cakeSection = document.getElementById('cake-interaction');
+        const flame = document.getElementById('flame');
+        const smoke = document.getElementById('smoke');
+        const wishMessage = document.getElementById('wish-message');
+        let candlesBlown = false;
+
+        function scrollToCake() {
+            document.getElementById('cake-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Auto confetti burst every few seconds for ambience
+        setInterval(() => {
+           if(Math.random() > 0.7) {
+               confetti({
+                   particleCount: 10,
+                   startVelocity: 10,
+                   spread: 360,
+                   origin: {
+                       x: Math.random(),
+                       y: Math.random() - 0.2
+                   },
+                   colors: ['#f472b6', '#fff']
+               });
+           }
+        }, 3000);
+
+        cakeSection.addEventListener('click', () => {
+            if (!candlesBlown) {
+                candlesBlown = true;
+                
+                // Extinguish flame
+                flame.style.opacity = 0;
+                
+                // Show smoke
+                smoke.style.display = 'block';
+                
+                // Show message
+                wishMessage.style.opacity = 1;
+
+                // MASSIVE Confetti Explosion
+                var duration = 3 * 1000;
+                var animationEnd = Date.now() + duration;
+                var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+                var randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+                var interval = setInterval(function() {
+                    var timeLeft = animationEnd - Date.now();
+
+                    if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                    }
+
+                    var particleCount = 50 * (timeLeft / duration);
+                    // since particles fall down, start a bit higher than random
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#f472b6', '#c084fc'] }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#fbbf24', '#ffffff'] }));
+                }, 250);
+            }
+        });
+    </script>
+</body>
+</html>
