@@ -20,6 +20,7 @@
             background: linear-gradient(135deg, #fff0f5 0%, #f3e8ff 100%); /* Lavender Blush to Pale Purple */
             color: #4a4a4a;
             overflow-x: hidden;
+            position: relative; /* Ensure body is a positioning context */
         }
 
         .font-header {
@@ -69,14 +70,18 @@
             transform: translateY(0);
         }
 
-        /* Candle & Cake Animation */
+        /* --- NEW IMPROVED CAKE CSS --- */
         .cake-container {
             position: relative;
-            width: 250px;
-            height: 250px;
+            width: 300px;
+            height: 300px;
             margin: 0 auto;
             cursor: pointer;
             animation: float-cake 3s ease-in-out infinite;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
         }
 
         @keyframes float-cake {
@@ -84,43 +89,111 @@
             50% { transform: translateY(-15px); }
         }
 
-        .cake {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 140px;
+        /* Tier 1 (Bottom) */
+        .cake-bottom {
+            width: 240px;
+            height: 80px;
             background: #fbcfe8; /* Pink Sponge */
-            border-radius: 15px 15px 10px 10px;
-            box-shadow: inset 0 -15px #f9a8d4, inset 0 15px #fff;
+            border-radius: 10px 10px 10px 10px;
+            position: relative;
+            box-shadow: inset 0 -10px rgba(0,0,0,0.05);
         }
 
-        .cake::before {
+        /* Sprinkles on bottom tier */
+        .cake-bottom::after {
             content: '';
+            position: absolute;
+            top: 30px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            background-image: 
+                radial-gradient(circle, #f472b6 2px, transparent 2.5px),
+                radial-gradient(circle, #60a5fa 2px, transparent 2.5px),
+                radial-gradient(circle, #fbbf24 2px, transparent 2.5px);
+            background-size: 30px 30px, 40px 40px, 50px 50px;
+            background-position: 0 0, 15px 15px, 10px 25px;
+            opacity: 0.6;
+        }
+
+        /* Tier 2 (Top) */
+        .cake-top {
+            width: 160px;
+            height: 70px;
+            background: #f9a8d4;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+        }
+
+        /* Icing Drip Logic */
+        .icing {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 50px;
-            background: #fff; /* White Frosting */
-            border-radius: 15px 15px 30px 30px;
-            box-shadow: 0 4px 10px rgba(249, 168, 212, 0.2);
-            background-image: radial-gradient(#f472b6 20%, transparent 20%);
-            background-size: 20px 20px;
-            background-position: 0 0;
+            height: 35px;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            z-index: 3;
         }
+        
+        .icing::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-image: 
+                radial-gradient(circle at 10px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 30px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 50px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 70px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 90px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 110px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 130px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 150px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 170px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 190px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 210px 0, white 10px, transparent 11px),
+                radial-gradient(circle at 230px 0, white 10px, transparent 11px);
+            background-size: 40px 40px; 
+            background-repeat: repeat-x;
+        }
+        
+        .cake-top .icing::after {
+             background-size: 26.6px 40px; /* Adjust drip spacing for smaller tier */
+        }
+
+        /* Cherry */
+        .cherry {
+            width: 20px;
+            height: 20px;
+            background: #ef4444;
+            border-radius: 50%;
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            z-index: 4;
+            box-shadow: inset -2px -2px rgba(0,0,0,0.2);
+        }
+        .cherry:nth-child(2) { left: auto; right: 20px; }
+        .cherry:nth-child(3) { left: 50%; transform: translateX(-50%); top: -15px; }
+
 
         .candle {
             position: absolute;
-            top: -30px;
+            top: -45px;
             left: 50%;
             transform: translateX(-50%);
-            width: 16px;
-            height: 50px;
+            width: 12px;
+            height: 45px;
             background: repeating-linear-gradient(45deg, #fff, #fff 5px, #f472b6 5px, #f472b6 10px);
             border-radius: 4px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 5;
         }
 
         .flame {
@@ -128,8 +201,8 @@
             top: -20px;
             left: 50%;
             transform: translateX(-50%);
-            width: 16px;
-            height: 22px;
+            width: 14px;
+            height: 20px;
             background: radial-gradient(ellipse at bottom, #fde047 0%, #f97316 60%, transparent 100%);
             border-radius: 50% 50% 20% 20%;
             animation: flicker 1s infinite alternate;
@@ -192,16 +265,20 @@
         /* Floating Hearts Animation Background */
         .bg-heart {
             position: fixed;
-            color: rgba(244, 114, 182, 0.2);
+            color: #f472b6; 
+            opacity: 0.3;    /* Made transparent */
             font-size: 2rem;
             animation: floatUp linear infinite;
-            z-index: -1;
+            z-index: 0;      /* Brought forward */
+            pointer-events: none; /* Allows clicking through them */
             user-select: none;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); /* Slight glow for better visibility */
         }
 
         @keyframes floatUp {
             0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            20% { opacity: 0.6; }
+            10% { opacity: 0.3; } /* Adjusted max opacity */
+            90% { opacity: 0.3; } /* Adjusted max opacity */
             100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
         }
 
@@ -215,7 +292,7 @@
     <!-- Navigation -->
     <nav class="fixed top-0 w-full z-50 p-6 flex justify-between items-center text-pink-500">
         <div class="text-xl font-bold tracking-widest font-header">HAPPY BIRTHDAY</div>
-        <div class="text-sm uppercase tracking-wider font-semibold text-pink-400">Dec 07 • Sara's Day</div>
+        <div class="text-sm uppercase tracking-wider font-semibold text-pink-400">Dec 09 • Sara's Day</div>
     </nav>
 
     <!-- Hero Section -->
@@ -224,10 +301,11 @@
         <div class="absolute -z-10 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 top-1/4 left-1/4 animate-pulse"></div>
         <div class="absolute -z-10 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-50 bottom-1/4 right-1/4 animate-pulse" style="animation-delay: 1s;"></div>
 
-        <div class="z-10 max-w-4xl">
+        <div class="z-10 w-full max-w-7xl">
             <h2 class="text-pink-400 tracking-widest uppercase mb-4 text-sm md:text-base font-bold animate-bounce">✨ It's your special day ✨</h2>
-            <div class="typewriter w-fit mx-auto mb-6">
-                <h1 class="text-4xl md:text-7xl lg:text-8xl font-header font-bold text-gray-800 text-glow">
+            <!-- Fixed: Adjusted container width and font sizes to prevent cropping on Laptop -->
+            <div class="typewriter w-fit mx-auto mb-6 max-w-[95vw]">
+                <h1 class="text-3xl md:text-6xl lg:text-7xl font-header font-bold text-gray-800 text-glow">
                     Happy Birthday Sara
                 </h1>
             </div>
@@ -253,11 +331,23 @@
             <p class="text-gray-500 text-xl font-medium">Close your eyes and click the cake! 🎈</p>
         </div>
 
+        <!-- NEW CAKE STRUCTURE -->
         <div class="cake-container transform transition-all hover:scale-105 active:scale-95" id="cake-interaction">
-            <div class="cake"></div>
-            <div class="candle">
-                <div class="flame" id="flame"></div>
-                <div class="smoke" id="smoke"></div>
+            <!-- Top Tier -->
+            <div class="cake-top">
+                <div class="icing"></div>
+                <div class="cherry"></div>
+                <div class="cherry"></div>
+                <div class="cherry"></div>
+                <!-- Candle -->
+                <div class="candle">
+                    <div class="flame" id="flame"></div>
+                    <div class="smoke" id="smoke"></div>
+                </div>
+            </div>
+            <!-- Bottom Tier -->
+            <div class="cake-bottom">
+                <div class="icing"></div>
             </div>
         </div>
         
@@ -277,10 +367,8 @@
             
             <h3 class="text-3xl font-header mb-8 text-purple-600">A Little Note for You</h3>
             <p class="text-xl leading-loose text-gray-600 font-medium">
-                "Another year around the sun, and you are glowing! 
-                Just like your favorite feed, may your life be filled with aesthetic moments, 
-                beautiful memories, and endless joy. 
-                Keep being your amazing, stylish, and wonderful self."
+                "Happy birthday Sara! May your stocks go up and slots always hit jackpots!
+                May you stay healthy and propser!"
             </p>
             <div class="mt-10 font-script text-4xl text-pink-500">
                 With lots of Love
@@ -303,16 +391,18 @@
         // --- Generate Floating Background Hearts ---
         function createFloatingHearts() {
             const body = document.body;
-            const heartCount = 15;
-            const shapes = ['❤', '✨', '🌸'];
+            const heartCount = 60; // Increased count to 60
+            const shapes = ['❤', '✨', '🌸', '🦄', '🍭', '🎀', '🍦', '🧸', '🍬', '💫', '🧁', '🦋', '🌈', '😻'];
 
             for (let i = 0; i < heartCount; i++) {
                 const el = document.createElement('div');
                 el.classList.add('bg-heart');
                 el.innerText = shapes[Math.floor(Math.random() * shapes.length)];
                 el.style.left = Math.random() * 100 + 'vw';
-                el.style.animationDuration = (Math.random() * 10 + 10) + 's';
-                el.style.fontSize = (Math.random() * 1 + 1) + 'rem';
+                el.style.top = Math.random() * 100 + 'vh'; // Spread them out vertically initially
+                el.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                el.style.animationDelay = '-' + (Math.random() * 20) + 's'; // Start animation at random times immediately
+                el.style.fontSize = (Math.random() * 1.5 + 1.5) + 'rem'; // Slightly larger
                 body.appendChild(el);
             }
         }
